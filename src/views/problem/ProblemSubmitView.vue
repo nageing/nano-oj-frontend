@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, reactive } from 'vue'
+import { onMounted, onUnmounted, ref, reactive, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProblemByIdUsingGet, doProblemSubmitUsingPost } from '@/api/problem'
 import { ElMessage } from 'element-plus'
@@ -130,17 +130,16 @@ import {
   VideoPlay,
   InfoFilled,
 } from '@element-plus/icons-vue'
-import { useUserStore } from '@/store/user' // ✨ 引入 Store
+import { useUserStore } from '@/store/user'
 import 'splitpanes/dist/splitpanes.css'
 import type { ProblemVO } from '@/api/problem'
 
-// 引入拆分后的子组件
 import ProblemDetail from './components/ProblemDetail.vue'
 import ProblemDiscussion from './components/ProblemDiscussion.vue'
 import ProblemRecord from './components/ProblemRecord.vue'
 
 const route = useRoute()
-const userStore = useUserStore() // ✨ 实例化
+const userStore = useUserStore()
 const problem = ref<ProblemVO | null>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const recordRef = ref<any>(null)
@@ -199,10 +198,9 @@ const loadData = async () => {
 const doSubmit = async () => {
   if (!problem.value?.id) return
 
-  // ✨✨✨ 登录校验 ✨✨✨
   if (!userStore.loginUser.id) {
     ElMessage.warning('请先登录')
-    userStore.setLoginDialogVisible(true) // 唤起弹窗
+    userStore.setLoginDialogVisible(true)
     return
   }
 
@@ -221,10 +219,16 @@ const doSubmit = async () => {
 
   if (r.code === 0) {
     ElMessage.success('提交成功')
-    testResult.value = '✅ 提交成功！\n\n（请切换到“我的提交”Tab查看记录）'
-    if (activeLeftTab.value === 'record' && recordRef.value) {
+    testResult.value = '✅ 提交成功！\n\n（请查看左侧“我的提交”列表）'
+
+    // ✨ 核心修改：自动跳转到记录 Tab 并刷新
+    activeLeftTab.value = 'record'
+    // 等待 Tab 切换完成，组件挂载后再调用刷新
+    await nextTick()
+    if (recordRef.value) {
       recordRef.value.loadMySubmissions()
     }
+
   } else {
     ElMessage.error('提交失败: ' + r.message)
     testResult.value = '❌ 提交失败:\n' + r.message

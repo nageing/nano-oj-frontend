@@ -7,11 +7,15 @@
       style="width: 100%; flex: 1;"
       :header-cell-style="{background:'#f9fafc', color:'#606266', fontWeight:'600'}"
     >
-      <el-table-column label="状态" width="100" align="center">
+      <el-table-column label="状态" width="120" align="center">
         <template #default="{ row }">
-           <el-tag v-if="row.status === 2" type="success" size="small" effect="dark" round>通过</el-tag>
-           <el-tag v-else-if="row.status === 3" type="danger" size="small" effect="dark" round>失败</el-tag>
-           <el-tag v-else type="warning" size="small" effect="dark" round>判题中</el-tag>
+           <el-tag v-if="row.status === 3" type="danger" size="small" effect="dark" round>判题失败</el-tag>
+           <el-tag v-else-if="row.status !== 2" type="warning" size="small" effect="dark" round loading>判题中</el-tag>
+           <template v-else>
+             <el-tag v-if="row.judgeInfo?.message === 'Accepted'" type="success" size="small" effect="dark" round>通过</el-tag>
+             <el-tag v-else-if="row.judgeInfo?.message === 'Wrong Answer'" type="danger" size="small" effect="dark" round>答案错误</el-tag>
+             <el-tag v-else type="warning" size="small" effect="plain" round>{{ row.judgeInfo?.message || '未知错误' }}</el-tag>
+           </template>
         </template>
       </el-table-column>
       <el-table-column prop="language" label="语言" width="80" align="center" />
@@ -90,7 +94,7 @@ const submissionSearchParams = reactive<ProblemSubmitQueryRequest>({
 const loadMySubmissions = async () => {
   if (!props.problemId) return
   if (!userStore.loginUser.id) {
-    ElMessage.warning('请先登录')
+    // 未登录不加载，也不报错，静默处理
     return
   }
   submissionLoading.value = true
@@ -101,12 +105,17 @@ const loadMySubmissions = async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const r = res as any
   if (r.code === 0) {
+    // 后端现在返回的 judgeInfo 已经是对象了，但为了保险起见，这里做一个兼容判断
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     submissionList.value = r.data.records.map((item: any) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tempItem = item as any
       if(tempItem.judgeInfo && typeof tempItem.judgeInfo === 'string') {
-        tempItem.judgeInfo = JSON.parse(tempItem.judgeInfo)
+        try {
+          tempItem.judgeInfo = JSON.parse(tempItem.judgeInfo)
+        } catch(e) {
+          console.error("解析 judgeInfo 失败", e)
+        }
       }
       return tempItem
     })
@@ -122,7 +131,7 @@ const openCodeDetail = (row: ProblemSubmitVO) => {
   codeDetailVisible.value = true
 }
 
-// 监听变化，自动刷新
+// 监听题目ID变化，自动刷新
 watch(() => props.problemId, (newId) => {
   if (newId) loadMySubmissions()
 })
@@ -131,7 +140,7 @@ onMounted(() => {
   if (props.problemId) loadMySubmissions()
 })
 
-// 暴露方法给父组件，以便提交成功后自动刷新
+// 暴露方法给父组件
 defineExpose({ loadMySubmissions })
 </script>
 
