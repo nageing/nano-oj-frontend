@@ -63,19 +63,19 @@ export interface ProblemVO {
   title: string;
   content?: string;     // 题目描述 (Markdown)
   answer?: string;      // 题目答案 (管理员可见)
-  
+
   // 🔥重点：这里定义为数组/对象，但在接收后端数据时，
   // 如果后端返回的是 JSON 字符串，记得在前端手动 JSON.parse 转一下！
   tags: string[];                   // 标签列表，如 ["简单", "栈"]
   judgeConfig: JudgeConfig;         // 判题配置对象
   judgeCase?: JudgeCase[];          // 测试用例数组
-  
+
   submitNum?: number;   // 提交数
   acceptedNum?: number; // 通过数
-  
+
   thumbNum?: number;    // 点赞数
   favourNum?: number;   // 收藏数
-  
+
   userId?: number;      // 创建人ID
   createTime?: string;
   updateTime?: string;
@@ -99,6 +99,15 @@ export const addProblemUsingPost = async (params: ProblemAddRequest) => {
   return await axios.post('/problem/add', params) as unknown as Promise<BaseResponse<number>>;
 }
 
+/**
+ * 根据 id 获取题目详情 (做题专用，脱敏版)
+ * 对应后端: GET /problem/get/vo
+ */
+export const getProblemVOByIdUsingGet = async (id: number) => {
+  return await axios.get(`/problem/get/vo`, {
+    params: { id }
+  }) as unknown as Promise<BaseResponse<ProblemVO>>;
+}
 /**
  * 根据 id 获取题目详情
  * 对应后端: GET /problem/get
@@ -181,4 +190,32 @@ export interface UserVO {
  */
 export const listProblemSubmitByPageUsingPost = async (params: ProblemSubmitQueryRequest) => {
   return await axios.post('/problem_submit/list/page', params) as unknown as Promise<BaseResponse<PageResponse<ProblemSubmitVO>>>;
+}
+
+
+export interface ProblemRunRequest {
+  /**
+   * 代码
+   */
+  code: string
+
+  /**
+   * 自测输入
+   */
+  input: string
+
+  /**
+   * 编程语言
+   */
+  language: string
+}
+
+/**
+ * 运行代码 (自测)
+ * 对应后端: POST /problem_submit/run
+ */
+export const doProblemRunUsingPost = async (params: ProblemRunRequest) => {
+  return (await axios.post('/problem_submit/run', params)) as unknown as Promise<
+    BaseResponse<ProblemSubmitVO>
+  >
 }

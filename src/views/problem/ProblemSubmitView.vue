@@ -65,27 +65,35 @@
           </div>
 
           <div class="console-drawer" :class="{ 'is-expanded': isConsoleOpen }">
-            <div class="console-header" @click="toggleConsole">
+            <div class="console-header">
               <div class="header-tabs">
                 <div
                   class="tab-btn"
                   :class="{ active: activeTab === 'input' }"
-                  @click.stop="switchTab('input')"
+                  @click="switchTab('input')"
                 >
                   自测输入
                 </div>
                 <div
                   class="tab-btn"
                   :class="{ active: activeTab === 'result' }"
-                  @click.stop="switchTab('result')"
+                  @click="switchTab('result')"
                 >
                   运行结果
                 </div>
               </div>
               <div class="header-actions">
-                <el-icon :class="['arrow-icon', { rotate: isConsoleOpen }]"
-                  ><ArrowUpBold
-                /></el-icon>
+                <el-button
+                   type="success"
+                   size="small"
+                   plain
+                   :loading="runLoading"
+                   @click="doRun"
+                   style="margin-right: 16px"
+                >
+                  <el-icon style="margin-right: 4px"><CaretRight /></el-icon> 运行自测
+                </el-button>
+                <el-icon class="close-icon" @click="toggleConsole"><Close /></el-icon>
               </div>
             </div>
 
@@ -101,9 +109,13 @@
                 />
               </div>
               <div v-show="activeTab === 'result'" class="tab-pane">
-                <div v-if="!testResult" class="empty-state">
+                <div v-if="!testResult && !runLoading" class="empty-state">
                   <el-icon size="48" color="#dcdfe6"><VideoPlay /></el-icon>
-                  <p>点击上方“自测”按钮开始运行</p>
+                  <p>点击上方“运行自测”按钮开始运行</p>
+                </div>
+                 <div v-else-if="runLoading" class="empty-state">
+                   <el-icon class="is-loading" size="30" color="#409eff"><Loading /></el-icon>
+                   <p>正在 Docker 容器中运行...</p>
                 </div>
                 <pre v-else class="result-code">{{ testResult }}</pre>
               </div>
@@ -116,9 +128,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, reactive, nextTick } from 'vue'
+import { onMounted, onUnmounted, ref, reactive, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getProblemByIdUsingGet, doProblemSubmitUsingPost } from '@/api/problem'
+import {
+  getProblemVOByIdUsingGet,
+  doProblemSubmitUsingPost,
+  doProblemRunUsingPost
+} from '@/api/problem'
 import { ElMessage } from 'element-plus'
 import CodeEditor from '@/components/CodeEditor.vue'
 import { Splitpanes, Pane } from 'splitpanes'
@@ -129,6 +145,9 @@ import {
   ArrowDownBold,
   VideoPlay,
   InfoFilled,
+  CaretRight,
+  Close,
+  Loading
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
 import 'splitpanes/dist/splitpanes.css'
@@ -138,9 +157,10 @@ import ProblemDetail from './components/ProblemDetail.vue'
 import ProblemDiscussion from './components/ProblemDiscussion.vue'
 import ProblemRecord from './components/ProblemRecord.vue'
 
+
 const route = useRoute()
 const userStore = useUserStore()
-const problem = ref<ProblemVO | null>(null)
+const problem = ref<ProblemVO | undefined>(undefined)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const recordRef = ref<any>(null)
 
@@ -154,7 +174,23 @@ const isConsoleOpen = ref(false)
 const activeTab = ref('input')
 const selfTestInput = ref('')
 const testResult = ref('')
-const form = reactive({ language: 'java', code: '' })
+const runLoading = ref(false)
+// 定时器变量
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pollTimer = ref<any>(null)
+
+// 修改 form 的初始化逻辑
+// 尝试从 localStorage 获取 'last-used-language'，如果获取不到，默认使用 'java'
+const form = reactive({
+  language: localStorage.getItem('last-used-language') || 'java',
+  code: ''
+})
+
+// 3. 添加监听器
+// 每当用户切换语言 (form.language 变化) 时，自动保存到 localStorage
+watch(() => form.language, (newLang) => {
+  localStorage.setItem('last-used-language', newLang)
+})
 
 onMounted(() => {
   loadData()
@@ -164,6 +200,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateViewHeight)
+  // 组件销毁时清除定时器，防止后台一直刷
+  if (pollTimer.value) {
+    clearInterval(pollTimer.value)
+  }
 })
 
 const toggleConsole = () => {
@@ -180,18 +220,76 @@ const changeCode = (v: string) => {
 const loadData = async () => {
   const id = route.params.id
   if (!id) return
-  const res = await getProblemByIdUsingGet(Number(id))
+  const res = await getProblemVOByIdUsingGet(Number(id))
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const r = res as any
 
   if (r.code === 0 && r.data) {
     const rawData = r.data
-    if (typeof rawData.tags === 'string') rawData.tags = JSON.parse(rawData.tags as string)
+    if (typeof rawData.tags === 'string') rawData.tags = JSON.parse(rawData.tags)
     if (typeof rawData.judgeConfig === 'string')
-      rawData.judgeConfig = JSON.parse(rawData.judgeConfig as string)
+      rawData.judgeConfig = JSON.parse(rawData.judgeConfig)
     if (typeof rawData.judgeCase === 'string')
-      rawData.judgeCase = JSON.parse(rawData.judgeCase as string)
+      rawData.judgeCase = JSON.parse(rawData.judgeCase)
+
+    if (rawData.judgeCase && rawData.judgeCase.length > 0) {
+       selfTestInput.value = rawData.judgeCase[0].input
+    }
+
     problem.value = rawData as ProblemVO
+  } else {
+    problem.value = undefined
+  }
+}
+
+const doRun = async () => {
+  if (!form.code) {
+    ElMessage.warning('请输入代码')
+    return
+  }
+  if (!userStore.loginUser.id) {
+    ElMessage.warning('请先登录')
+    userStore.setLoginDialogVisible(true)
+    return
+  }
+
+  isConsoleOpen.value = true
+  activeTab.value = 'result'
+  runLoading.value = true
+  testResult.value = ''
+
+  try {
+    const res = await doProblemRunUsingPost({
+      code: form.code,
+      language: form.language,
+      input: selfTestInput.value
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = res as any
+    if (r.code === 0 && r.data) {
+       let judgeInfo = r.data.judgeInfo
+       if (typeof judgeInfo === 'string') {
+         try {
+            judgeInfo = JSON.parse(judgeInfo)
+         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         } catch(e) {}
+       }
+       if (judgeInfo && judgeInfo.message) {
+         testResult.value = judgeInfo.message
+       } else {
+         testResult.value = "运行完成，无输出"
+       }
+       ElMessage.success('运行成功')
+    } else {
+      ElMessage.error('运行失败: ' + r.message)
+      testResult.value = "运行失败: " + r.message
+    }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    ElMessage.error('系统错误')
+  } finally {
+    runLoading.value = false
   }
 }
 
@@ -204,10 +302,6 @@ const doSubmit = async () => {
     return
   }
 
-  isConsoleOpen.value = true
-  activeTab.value = 'result'
-  testResult.value = '代码提交中，请稍候...'
-
   const res = await doProblemSubmitUsingPost({
     problemId: problem.value.id,
     language: form.language,
@@ -219,19 +313,39 @@ const doSubmit = async () => {
 
   if (r.code === 0) {
     ElMessage.success('提交成功')
-    testResult.value = '✅ 提交成功！\n\n（请查看左侧“我的提交”列表）'
 
-    // ✨ 核心修改：自动跳转到记录 Tab 并刷新
+    // 1. 切换到记录 Tab
     activeLeftTab.value = 'record'
-    // 等待 Tab 切换完成，组件挂载后再调用刷新
     await nextTick()
+
+    // 2. 立即刷新一次
     if (recordRef.value) {
       recordRef.value.loadMySubmissions()
     }
 
+    // 3. ✨✨✨ 开启轮询 (Auto Refresh) ✨✨✨
+    // 先清除旧的，防止多重定时器
+    if (pollTimer.value) {
+      clearInterval(pollTimer.value)
+    }
+
+    let refreshCount = 0
+    // 每 2 秒刷新一次
+    pollTimer.value = setInterval(() => {
+       refreshCount++
+       // 超过 20 秒 (10次) 后停止自动刷新，避免一直消耗资源
+       if (refreshCount > 10) {
+         clearInterval(pollTimer.value)
+         return
+       }
+       // 调用子组件方法刷新列表
+       if (recordRef.value) {
+         recordRef.value.loadMySubmissions()
+       }
+    }, 2000)
+
   } else {
     ElMessage.error('提交失败: ' + r.message)
-    testResult.value = '❌ 提交失败:\n' + r.message
   }
 }
 </script>
@@ -307,7 +421,6 @@ const doSubmit = async () => {
   flex-direction: column;
 }
 
-/* 滚动容器 */
 .left-panel-scroll {
   flex: 1;
   height: 100%;
@@ -409,8 +522,6 @@ const doSubmit = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  cursor: pointer;
-  user-select: none;
 }
 .header-tabs {
   display: flex;
@@ -435,12 +546,18 @@ const doSubmit = async () => {
   border-bottom-color: #409eff;
   font-weight: 600;
 }
-.arrow-icon {
-  color: #909399;
-  transition: transform 0.3s;
+.header-actions {
+  display: flex;
+  align-items: center;
 }
-.arrow-icon.rotate {
-  transform: rotate(180deg);
+.close-icon {
+  font-size: 18px;
+  color: #909399;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-icon:hover {
+  color: #333;
 }
 .console-content {
   flex: 1;

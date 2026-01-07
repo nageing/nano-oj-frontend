@@ -64,7 +64,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true, // 开启 props 传参，把 id 传给组件
     meta: {
       hideInMenu: true, // 在菜单中隐藏
-    }
+    },
   },
 
   // ================= 管理员专区 =================
@@ -72,6 +72,15 @@ const routes: Array<RouteRecordRaw> = [
     path: '/problem/manage',
     name: '管理题目',
     component: () => import('@/views/problem/ManageProblemView.vue'),
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+    },
+  },
+
+  {
+    path: '/tag/manage',
+    name: '管理标签',
+    component: () => import('@/views/tag/TagManageView.vue'),
     meta: {
       access: ACCESS_ENUM.ADMIN,
     },

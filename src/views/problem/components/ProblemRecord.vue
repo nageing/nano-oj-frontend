@@ -26,10 +26,12 @@
          </template>
       </el-table-column>
       <el-table-column label="内存" width="90" align="center">
-         <template #default="{ row }">
-            <span v-if="row.judgeInfo?.memory" style="font-family: monospace">{{ (row.judgeInfo.memory / 1024).toFixed(0) }}KB</span>
-            <span v-else>--</span>
-         </template>
+        <template #default="{ row }">
+           <span v-if="row.judgeInfo?.memory" style="font-family: monospace">
+             {{ row.judgeInfo.memory }}KB
+           </span>
+           <span v-else>--</span>
+        </template>
       </el-table-column>
       <el-table-column label="提交时间" min-width="150" align="center">
          <template #default="{ row }">
