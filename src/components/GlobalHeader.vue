@@ -15,12 +15,11 @@
       >
         <el-menu-item index="/">首页</el-menu-item>
         <el-menu-item index="/questions">题库</el-menu-item>
-        <el-menu-item index="/contest">比赛</el-menu-item>
+        <el-menu-item index="/contest/list">比赛</el-menu-item>
         <el-menu-item index="/discussion">讨论区</el-menu-item>
 
         <template v-if="checkAdmin()">
           <el-menu-item index="/problem/manage">题目管理</el-menu-item>
-          <el-menu-item index="/contest/manage">比赛管理</el-menu-item>
           <el-menu-item index="/tag/manage">标签管理</el-menu-item>
         </template>
       </el-menu>

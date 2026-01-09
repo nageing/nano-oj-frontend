@@ -3,7 +3,12 @@
     <el-form-item label="题目标题">
       <el-input v-model="form.title" placeholder="请输入标题" />
     </el-form-item>
-
+    <el-form-item label="可见性">
+      <el-radio-group v-model="form.visible">
+        <el-radio :label="0">公开 (Question Bank)</el-radio>
+        <el-radio :label="1">私有 (Contest Only)</el-radio>
+      </el-radio-group>
+    </el-form-item>
     <el-form-item label="题目标签">
       <el-select
         v-model="form.tags"
@@ -14,12 +19,7 @@
         default-first-option
         placeholder="请选择标签（输入内容并回车可创建新标签）"
       >
-        <el-option
-          v-for="item in tagOptions"
-          :key="item.id"
-          :label="item.name"
-          :value="item.name"
-        >
+        <el-option v-for="item in tagOptions" :key="item.id" :label="item.name" :value="item.name">
           <span
             :style="{
               display: 'inline-block',
@@ -27,7 +27,7 @@
               height: '10px',
               borderRadius: '50%',
               backgroundColor: item.color || '#ccc',
-              marginRight: '8px'
+              marginRight: '8px',
             }"
           ></span>
           <span>{{ item.name }}</span>
@@ -89,9 +89,9 @@ interface JudgeCaseItem {
 
 // 定义标签数据结构
 interface TagVO {
-  id: number;
-  name: string;
-  color?: string;
+  id: number
+  name: string
+  color?: string
 }
 
 const props = defineProps<{
@@ -109,6 +109,7 @@ const form = reactive({
   tags: [] as string[],
   answer: '',
   content: '',
+  visible: 0, // 0 公开，1 私有
   judgeConfig: {
     timeLimit: 1000,
     memoryLimit: 1000,
@@ -128,7 +129,7 @@ const loadTags = async () => {
       tagOptions.value = r.data
     }
   } catch (error) {
-    console.error("加载标签失败", error)
+    console.error('加载标签失败', error)
   }
 }
 
@@ -146,14 +147,15 @@ const loadData = async () => {
     // ✨✨✨ 修改点 6：加载回显逻辑，直接赋值数组
     if (data.tags) {
       if (Array.isArray(data.tags)) {
-        form.tags = data.tags as string[]
+        // Extract tag names from TagVO array
+        form.tags = (data.tags as TagVO[]).map((tag: TagVO) => tag.name)
       } else {
         // 如果后端存的是 JSON 字符串
         try {
-           form.tags = JSON.parse(data.tags as string)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch(e) {
-           form.tags = []
+          form.tags = JSON.parse(data.tags as string)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+          form.tags = []
         }
       }
     } else {
@@ -206,7 +208,7 @@ const submitForm = async () => {
     ...form,
     id: props.id,
     // ✨✨✨ 修改点 7：提交时不需要手动 split，tags 本身就是数组
-    tags: form.tags
+    tags: form.tags,
   }
 
   let res

@@ -85,6 +85,31 @@ const routes: Array<RouteRecordRaw> = [
       access: ACCESS_ENUM.ADMIN,
     },
   },
+
+  // ================= 比赛相关 =================
+  {
+    path: '/contest/add',
+    name: '创建比赛',
+    component: () => import('@/views/contest/AddContestView.vue'),
+    meta: {
+      access: 'admin',
+      hideInMenu: false,
+    },
+  },
+  {
+    path: '/contest/list',
+    name: '比赛列表',
+    component: () => import('@/views/contest/ContestListView.vue'),
+  },
+  {
+    path: '/contest/:id',
+    name: '比赛详情',
+    component: () => import('@/views/contest/ContestDetailView.vue'),
+    meta: {
+      hideInMenu: true,
+    },
+    props: true, // 建议开启 props 传参
+  },
 ]
 
 const router = createRouter({

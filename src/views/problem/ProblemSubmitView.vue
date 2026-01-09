@@ -9,7 +9,7 @@
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="讨论区" name="comment">
+          <el-tab-pane label="讨论区" name="comment" v-if="!route.query.contestId">
             <ProblemDiscussion v-if="problem?.id" :problemId="problem.id" />
           </el-tab-pane>
 
@@ -84,12 +84,12 @@
               </div>
               <div class="header-actions">
                 <el-button
-                   type="success"
-                   size="small"
-                   plain
-                   :loading="runLoading"
-                   @click="doRun"
-                   style="margin-right: 16px"
+                  type="success"
+                  size="small"
+                  plain
+                  :loading="runLoading"
+                  @click="doRun"
+                  style="margin-right: 16px"
                 >
                   <el-icon style="margin-right: 4px"><CaretRight /></el-icon> 运行自测
                 </el-button>
@@ -113,9 +113,9 @@
                   <el-icon size="48" color="#dcdfe6"><VideoPlay /></el-icon>
                   <p>点击上方“运行自测”按钮开始运行</p>
                 </div>
-                 <div v-else-if="runLoading" class="empty-state">
-                   <el-icon class="is-loading" size="30" color="#409eff"><Loading /></el-icon>
-                   <p>正在 Docker 容器中运行...</p>
+                <div v-else-if="runLoading" class="empty-state">
+                  <el-icon class="is-loading" size="30" color="#409eff"><Loading /></el-icon>
+                  <p>正在 Docker 容器中运行...</p>
                 </div>
                 <pre v-else class="result-code">{{ testResult }}</pre>
               </div>
@@ -133,8 +133,9 @@ import { useRoute } from 'vue-router'
 import {
   getProblemVOByIdUsingGet,
   doProblemSubmitUsingPost,
-  doProblemRunUsingPost
+  doProblemRunUsingPost,
 } from '@/api/problem'
+import { listTagUsingGet } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import CodeEditor from '@/components/CodeEditor.vue'
 import { Splitpanes, Pane } from 'splitpanes'
@@ -147,7 +148,7 @@ import {
   InfoFilled,
   CaretRight,
   Close,
-  Loading
+  Loading,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
 import 'splitpanes/dist/splitpanes.css'
@@ -156,7 +157,6 @@ import type { ProblemVO } from '@/api/problem'
 import ProblemDetail from './components/ProblemDetail.vue'
 import ProblemDiscussion from './components/ProblemDiscussion.vue'
 import ProblemRecord from './components/ProblemRecord.vue'
-
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -175,22 +175,20 @@ const activeTab = ref('input')
 const selfTestInput = ref('')
 const testResult = ref('')
 const runLoading = ref(false)
-// 定时器变量
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pollTimer = ref<any>(null)
 
-// 修改 form 的初始化逻辑
-// 尝试从 localStorage 获取 'last-used-language'，如果获取不到，默认使用 'java'
 const form = reactive({
   language: localStorage.getItem('last-used-language') || 'java',
-  code: ''
+  code: '',
 })
 
-// 3. 添加监听器
-// 每当用户切换语言 (form.language 变化) 时，自动保存到 localStorage
-watch(() => form.language, (newLang) => {
-  localStorage.setItem('last-used-language', newLang)
-})
+watch(
+  () => form.language,
+  (newLang) => {
+    localStorage.setItem('last-used-language', newLang)
+  },
+)
 
 onMounted(() => {
   loadData()
@@ -200,7 +198,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateViewHeight)
-  // 组件销毁时清除定时器，防止后台一直刷
   if (pollTimer.value) {
     clearInterval(pollTimer.value)
   }
@@ -220,20 +217,40 @@ const changeCode = (v: string) => {
 const loadData = async () => {
   const id = route.params.id
   if (!id) return
-  const res = await getProblemVOByIdUsingGet(Number(id))
+
+  // 并行请求：同时获取题目详情和所有标签(含颜色)
+  const [problemRes, tagRes] = await Promise.all([
+    getProblemVOByIdUsingGet(Number(id)),
+    listTagUsingGet().catch(() => ({ code: -1, data: [] })),
+  ])
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = res as any
+  const r = problemRes as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const t = tagRes as any
 
   if (r.code === 0 && r.data) {
     const rawData = r.data
+
     if (typeof rawData.tags === 'string') rawData.tags = JSON.parse(rawData.tags)
     if (typeof rawData.judgeConfig === 'string')
       rawData.judgeConfig = JSON.parse(rawData.judgeConfig)
-    if (typeof rawData.judgeCase === 'string')
-      rawData.judgeCase = JSON.parse(rawData.judgeCase)
+    if (typeof rawData.judgeCase === 'string') rawData.judgeCase = JSON.parse(rawData.judgeCase)
 
     if (rawData.judgeCase && rawData.judgeCase.length > 0) {
-       selfTestInput.value = rawData.judgeCase[0].input
+      selfTestInput.value = rawData.judgeCase[0].input
+    }
+
+    if (t.code === 0 && t.data && Array.isArray(rawData.tags)) {
+      const allTags = t.data
+      rawData.tags = rawData.tags.map((tagName: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const match = allTags.find((item: any) => item.name === tagName)
+        if (match) {
+          return { name: tagName, color: match.color }
+        }
+        return tagName
+      })
     }
 
     problem.value = rawData as ProblemVO
@@ -262,30 +279,30 @@ const doRun = async () => {
     const res = await doProblemRunUsingPost({
       code: form.code,
       language: form.language,
-      input: selfTestInput.value
+      input: selfTestInput.value,
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = res as any
     if (r.code === 0 && r.data) {
-       let judgeInfo = r.data.judgeInfo
-       if (typeof judgeInfo === 'string') {
-         try {
-            judgeInfo = JSON.parse(judgeInfo)
-         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-         } catch(e) {}
-       }
-       if (judgeInfo && judgeInfo.message) {
-         testResult.value = judgeInfo.message
-       } else {
-         testResult.value = "运行完成，无输出"
-       }
-       ElMessage.success('运行成功')
+      let judgeInfo = r.data.judgeInfo
+      if (typeof judgeInfo === 'string') {
+        try {
+          judgeInfo = JSON.parse(judgeInfo)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {}
+      }
+      if (judgeInfo && judgeInfo.message) {
+        testResult.value = judgeInfo.message
+      } else {
+        testResult.value = '运行完成，无输出'
+      }
+      ElMessage.success('运行成功')
     } else {
       ElMessage.error('运行失败: ' + r.message)
-      testResult.value = "运行失败: " + r.message
+      testResult.value = '运行失败: ' + r.message
     }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('系统错误')
   } finally {
@@ -302,10 +319,16 @@ const doSubmit = async () => {
     return
   }
 
+  // ✅ 修复：提取 URL 参数中的 contestId
+  const contestId = route.query.contestId
+    ? Number(route.query.contestId)
+    : undefined
+
   const res = await doProblemSubmitUsingPost({
     problemId: problem.value.id,
     language: form.language,
     code: form.code,
+    contestId // ✅ 传给后端
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -313,37 +336,25 @@ const doSubmit = async () => {
 
   if (r.code === 0) {
     ElMessage.success('提交成功')
-
-    // 1. 切换到记录 Tab
     activeLeftTab.value = 'record'
     await nextTick()
-
-    // 2. 立即刷新一次
     if (recordRef.value) {
       recordRef.value.loadMySubmissions()
     }
-
-    // 3. ✨✨✨ 开启轮询 (Auto Refresh) ✨✨✨
-    // 先清除旧的，防止多重定时器
     if (pollTimer.value) {
       clearInterval(pollTimer.value)
     }
-
     let refreshCount = 0
-    // 每 2 秒刷新一次
     pollTimer.value = setInterval(() => {
-       refreshCount++
-       // 超过 20 秒 (10次) 后停止自动刷新，避免一直消耗资源
-       if (refreshCount > 10) {
-         clearInterval(pollTimer.value)
-         return
-       }
-       // 调用子组件方法刷新列表
-       if (recordRef.value) {
-         recordRef.value.loadMySubmissions()
-       }
+      refreshCount++
+      if (refreshCount > 10) {
+        clearInterval(pollTimer.value)
+        return
+      }
+      if (recordRef.value) {
+        recordRef.value.loadMySubmissions()
+      }
     }, 2000)
-
   } else {
     ElMessage.error('提交失败: ' + r.message)
   }

@@ -51,12 +51,16 @@
             <div class="card-body">
               <div class="tags-area">
                 <el-tag
-                  v-for="tag in parseTags(item.tags)"
-                  :key="tag"
+                  v-for="(tag, index) in parseTags(item.tags)"
+                  :key="index"
                   size="small"
                   class="tag-item"
-                  >{{ tag }}</el-tag
+                  :color="getTagColor(tag)"
+                  effect="dark"
+                  style="border: none"
                 >
+                  {{ getTagName(tag) }}
+                </el-tag>
               </div>
               <div class="card-footer">
                 <el-button type="primary" text bg size="small" @click="openUpdateDialog(item)"
@@ -105,8 +109,7 @@ import { useRouter } from 'vue-router'
 import { listProblemByPageUsingPost, deleteProblemUsingPost } from '@/api/problem'
 import type { ProblemQueryRequest, ProblemVO } from '@/api/problem'
 import { ElMessage, ElMessageBox } from 'element-plus'
-//import { Search } from '@element-plus/icons-vue'
-import ProblemForm from '@/components/ProblemForm.vue' // ✨ 引入组件
+import ProblemForm from '@/components/ProblemForm.vue'
 
 const router = useRouter()
 const dataList = ref<ProblemVO[]>([])
@@ -114,36 +117,31 @@ const total = ref(0)
 const loading = ref(true)
 const searchParams = reactive<ProblemQueryRequest>({ current: 1, pageSize: 8, title: '' })
 
-// ✨ 弹窗控制变量
 const dialogVisible = ref(false)
 const currentId = ref<number | undefined>(undefined)
 
-// ✨ 打开创建弹窗
 const openCreateDialog = () => {
-  currentId.value = undefined // ID 为空表示创建
+  currentId.value = undefined
   dialogVisible.value = true
 }
 
-// ✨ 打开修改弹窗
 const openUpdateDialog = (item: ProblemVO) => {
-  currentId.value = item.id // 传入 ID 表示修改
+  currentId.value = item.id
   dialogVisible.value = true
 }
 
-// ✨ 表单提交成功后的回调
 const handleSuccess = () => {
-  dialogVisible.value = false // 关弹窗
-  loadData() // 刷新列表
+  dialogVisible.value = false
+  loadData()
 }
 
-// ... 保持 loadData, parseTags, doDelete 逻辑不变 ...
 const loadData = async () => {
   loading.value = true
   try {
     const res = await listProblemByPageUsingPost(searchParams)
-    if (res.code === 0) {
+    if (Number(res.code) === 0) {
       dataList.value = res.data.records
-      total.value = res.data.total
+      total.value = Number(res.data.total)
     } else {
       ElMessage.error('加载失败: ' + res.message)
     }
@@ -152,22 +150,57 @@ const loadData = async () => {
   }
 }
 
-const parseTags = (tagsStr: string | string[]) => {
-  if (!tagsStr) return []
-  if (Array.isArray(tagsStr)) return tagsStr
-  try {
-    return JSON.parse(tagsStr)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (e) {
-    return [tagsStr]
+// ✅ 修复点 3：增强解析函数
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const parseTags = (tags: any) => {
+  if (!tags) return []
+  if (Array.isArray(tags)) return tags
+  if (typeof tags === 'string') {
+    try {
+      return JSON.parse(tags)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      return tags.trim() ? [tags] : []
+    }
   }
+  return []
+}
+
+// ✅ 修复点 4：获取标签名称
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getTagName = (tag: any) => {
+  if (typeof tag === 'object' && tag !== null) {
+    return tag.name
+  }
+  return String(tag)
+}
+
+// ✅ 修复点 5：获取标签颜色 (如果为 null 则自动生成)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getTagColor = (tag: any) => {
+  // 如果对象里有颜色，直接用
+  if (typeof tag === 'object' && tag !== null && tag.color) {
+    return tag.color
+  }
+  // 否则根据名字算一个颜色
+  return genColor(getTagName(tag))
+}
+
+const genColor = (text: string) => {
+  if (!text) return ''
+  const colors = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399']
+  let hash = 0
+  for (let i = 0; i < text.length; i++) {
+    hash = text.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % colors.length]
 }
 
 const doDelete = (item: ProblemVO) => {
   ElMessageBox.confirm(`确定删除 "${item.title}" 吗？`, '警告', { type: 'warning' })
     .then(async () => {
       const res = await deleteProblemUsingPost(item.id)
-      if (res.code === 0) {
+      if (Number(res.code) === 0) {
         ElMessage.success('删除成功')
         loadData()
       } else {
@@ -226,7 +259,7 @@ onMounted(() => {
 }
 
 .card-body {
-  height: 100px; /* 固定高度，防止卡片参差不齐 */
+  height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

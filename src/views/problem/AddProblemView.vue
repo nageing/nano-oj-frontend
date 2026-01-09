@@ -1,7 +1,6 @@
 <template>
   <div id="addProblemView">
     <h2>创建题目</h2>
-
     <el-form :model="form" label-position="top">
       <el-form-item label="题目标题">
         <el-input v-model="form.title" placeholder="请输入标题" />
@@ -111,17 +110,13 @@ import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { addProblemUsingPost } from '@/api/problem'
 // ✨ 引入标签获取接口
-import { listTagUsingGet } from '@/api/tag'
+import { listTagUsingGet, TagVO } from '@/api/tag'
 import { ElMessage } from 'element-plus'
+
 
 const router = useRouter()
 const loading = ref(false)
 
-interface TagVO {
-  id: number
-  name: string
-  color?: string // 颜色是可选的
-}
 
 // 标签选项列表
 const tagOptions = ref<TagVO[]>([])
@@ -131,6 +126,7 @@ const form = reactive({
   tags: [] as string[],
   content: '',
   answer: '',
+  visible: 0, // 0 公开，1 私有
   judgeConfig: {
     timeLimit: 1000,
     memoryLimit: 1000,
@@ -148,8 +144,10 @@ const form = reactive({
 const loadTags = async () => {
   try {
     const res = await listTagUsingGet()
-    if (res.data.code === 0) {
-      tagOptions.value = res.data.data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = res as any
+    if (r.code === 0) {
+      tagOptions.value = r.data
     }
   } catch (e) {
     console.error('加载标签失败', e)

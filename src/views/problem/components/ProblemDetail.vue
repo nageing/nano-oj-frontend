@@ -4,16 +4,29 @@
       <div class="problem-header-card">
         <h2 class="title">{{ problem.title }}</h2>
         <div class="tags-row">
-          <el-tag
-            v-for="(tag, index) in safeTags"
-            :key="index"
-            effect="plain"
-            type="info"
-            size="small"
-            round
-          >
-            {{ tag }}
-          </el-tag>
+          <template v-for="(tag, index) in safeTags" :key="index">
+            <el-tag
+              v-if="typeof tag === 'string'"
+              :color="genColor(tag)"
+              effect="dark"
+              size="small"
+              style="border: none"
+              round
+            >
+              {{ tag }}
+            </el-tag>
+
+            <el-tag
+              v-else
+              :color="tag.color || genColor(tag.name)"
+              effect="dark"
+              size="small"
+              style="border: none"
+              round
+            >
+              {{ tag.name }}
+            </el-tag>
+          </template>
 
           <div class="limit-box">
             <el-icon><Timer /></el-icon>
@@ -76,40 +89,65 @@ import { computed } from 'vue'
 import { Viewer } from '@bytemd/vue-next'
 import gfm from '@bytemd/plugin-gfm'
 import highlight from '@bytemd/plugin-highlight'
-import math from '@bytemd/plugin-math' // ✨ 1. 引入数学插件
+import math from '@bytemd/plugin-math'
 import { Timer, Cpu, CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { ProblemVO } from '@/api/problem'
 import 'bytemd/dist/index.css'
 import 'highlight.js/styles/vs.css'
-import 'katex/dist/katex.css' // ✨ 2. 引入 KaTeX 样式 (必须！否则公式没样式)
+import 'katex/dist/katex.css'
 
 interface Props {
   problem?: ProblemVO | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  problem: null
+  problem: null,
 })
 
-// ✨ 3. 配置插件列表
-const plugins = [
-  gfm(),        // 支持 GFM (表格、任务列表等)
-  highlight(),  // 支持代码高亮
-  math(),       // 支持数学公式 (KaTeX)
-]
+const plugins = [gfm(), highlight(), math()]
+
+// 🎨 自动生成颜色的辅助函数
+// 如果标签没有配置颜色，就用这个函数根据名字生成一个固定的颜色
+const genColor = (text: string) => {
+  if (!text) return '#409EFF'
+  const colors = [
+    '#F56C6C',
+    '#E6A23C',
+    '#67C23A',
+    '#409EFF',
+    '#909399',
+    '#9c27b0',
+    '#ff9800',
+    '#795548',
+  ]
+  let hash = 0
+  for (let i = 0; i < text.length; i++) {
+    hash = text.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % colors.length]
+}
 
 // 安全获取标签
 const safeTags = computed(() => {
   if (!props.problem?.tags) return []
   const tags = props.problem.tags
+
+  // 1. 如果已经是数组（ProblemSubmitView 传过来的对象数组），直接返回
   if (Array.isArray(tags)) {
     return tags
   }
+
+  // 2. 如果是字符串，尝试解析 JSON
   try {
     return JSON.parse(tags as unknown as string)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
+    // ✅ 修复报错：强制断言 tags 为 unknown 再判断，防止 TS 推断为 never
+    const strTag = tags as unknown
+    if (typeof strTag === 'string' && strTag.trim() !== '') {
+       return [strTag]
+    }
     return []
   }
 })
@@ -124,13 +162,12 @@ const safeJudgeCase = computed<any[]>(() => {
   }
   try {
     return JSON.parse(caseData as unknown as string)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return []
   }
 })
 
-// 复制功能
 const copyText = async (text: string) => {
   if (!text) return
   try {
@@ -200,9 +237,8 @@ const copyText = async (text: string) => {
   line-height: 1.7;
   color: #262626;
 }
-/* ByteMD 样式微调 */
 :deep(.markdown-body) {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 :deep(.markdown-body p) {
   margin-bottom: 16px;
@@ -212,17 +248,16 @@ const copyText = async (text: string) => {
   border-radius: 6px;
   padding: 16px;
 }
-/* 图片自适应：防止图片过大撑破容器 */
 :deep(.markdown-body img) {
-  max-width: 600px;        /* 限制最大宽度，防止太宽 (按需调整，比如 80%) */
-  max-height: 400px;       /* 限制最大高度，防止太长 */
-  width: auto;             /* 保持原始比例 */
+  max-width: 600px;
+  max-height: 400px;
+  width: auto;
   height: auto;
-  display: block;          /* 块级显示，为了让 margin: auto 生效 */
-  margin: 16px auto;       /* 上下留白，左右自动居中 */
-  border-radius: 6px;      /* 圆角更柔和 */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); /* 加一点阴影更有质感 */
-  border: 1px solid #f0f0f0; /* 极细边框，防止白底图片看不清边界 */
+  display: block;
+  margin: 16px auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
 }
 .examples-container {
   display: flex;
@@ -258,9 +293,15 @@ const copyText = async (text: string) => {
   height: 10px;
   border-radius: 50%;
 }
-.dot.red { background: #fa5555; }
-.dot.yellow { background: #ebcb8b; }
-.dot.green { background: #67c23a; }
+.dot.red {
+  background: #fa5555;
+}
+.dot.yellow {
+  background: #ebcb8b;
+}
+.dot.green {
+  background: #67c23a;
+}
 
 .ex-title {
   font-size: 13px;

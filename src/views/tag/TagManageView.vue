@@ -52,39 +52,37 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { listTagUsingGet, addTagUsingPost, updateTagUsingPost, deleteTagUsingPost } from '@/api/tag'
+import type { TagVO } from '@/api/tag' // 引入接口定义
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-interface Tag {
-  id: number
-  name: string
-  color: string
-  createTime?: string
-}
-
-const tagList = ref<Tag[]>([])
+// 使用 TagVO 类型
+const tagList = ref<TagVO[]>([])
 const dialogVisible = ref(false)
 const form = reactive({ id: 0, name: '', color: '' })
 
 // 加载数据
 const loadData = async () => {
-  const res = await listTagUsingGet()
-  // ✨ 修复点 1：移除 .data，直接使用 res.code 和 res.data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = res as any
-  if (r.code === 0) {
-    tagList.value = r.data
-  } else {
-    ElMessage.error('加载失败: ' + (r.message || '未知错误'))
+  try {
+    const res = await listTagUsingGet()
+    // ✅ 修复点：直接访问 res.code，不再是 res.data.code
+    if (Number(res.code) === 0) {
+      tagList.value = res.data || []
+    } else {
+      ElMessage.error('加载失败: ' + res.message)
+    }
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : '未知错误'
+    ElMessage.error('加载失败: ' + errorMessage)
   }
 }
 
 // 打开弹窗
-const openDialog = (row?: Tag) => {
+const openDialog = (row?: TagVO) => {
   if (row) {
     form.id = row.id
     form.name = row.name
-    form.color = row.color
+    form.color = row.color || ''
   } else {
     form.id = 0
     form.name = ''
@@ -98,35 +96,42 @@ const handleSubmit = async () => {
   if (!form.name) return ElMessage.warning('请输入名称')
 
   let res;
-  if (form.id) {
-    res = await updateTagUsingPost(form)
-  } else {
-    res = await addTagUsingPost(form)
-  }
+  try {
+    if (form.id) {
+      res = await updateTagUsingPost(form)
+    } else {
+      res = await addTagUsingPost(form)
+    }
 
-  // ✨ 修复点 2：移除 .data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = res as any
-  if (r.code === 0) {
-    ElMessage.success('操作成功')
-    dialogVisible.value = false
-    loadData()
-  } else {
-    ElMessage.error('操作失败: ' + r.message)
+    // ✅ 修复点：直接使用 res.code
+    // 因为 api/tag.ts 已经强转了类型，这里 res 就是 {code, data, message}
+    if (Number(res.code) === 0) {
+      ElMessage.success('操作成功')
+      dialogVisible.value = false
+      loadData()
+    } else {
+      ElMessage.error('操作失败: ' + res.message)
+    }
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : '未知错误'
+    ElMessage.error('操作失败: ' + errorMessage)
   }
 }
 
 // 删除标签
-const handleDelete = (row: Tag) => {
+const handleDelete = (row: TagVO) => {
   ElMessageBox.confirm('确定删除该标签吗？', '提示', { type: 'warning' }).then(async () => {
-    const res = await deleteTagUsingPost({ id: row.id })
-    // ✨ 修复点 3：移除 .data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = res as any
-    if (r.code === 0) {
-      ElMessage.success('删除成功')
-      loadData()
-    } else {
+    try {
+      const res = await deleteTagUsingPost({ id: row.id })
+      // ✅ 修复点：直接使用 res.code
+      if (Number(res.code) === 0) {
+        ElMessage.success('删除成功')
+        loadData()
+      } else {
+        ElMessage.error('删除失败: ' + res.message)
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e: unknown) {
       ElMessage.error('删除失败')
     }
   })

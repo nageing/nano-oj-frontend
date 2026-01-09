@@ -39,15 +39,15 @@
           <template #default="{ row }">
             <div v-if="row.tags">
               <el-tag
-                v-for="tag in JSON.parse(row.tags)"
-                :key="tag"
-                type="info"
-                effect="plain"
+                v-for="(tag, index) in parseTags(row.tags)"
+                :key="index"
+                :color="getTagColor(tag)"
+                effect="dark"
                 size="small"
-                style="margin-right: 6px"
+                style="margin-right: 6px; border: none;"
                 round
               >
-                {{ tag }}
+                {{ getTagName(tag) }}
               </el-tag>
             </div>
           </template>
@@ -87,6 +87,7 @@
           :page-sizes="[10, 20, 50]"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
+          size="small"
           background
           @size-change="loadData"
           @current-change="loadData"
@@ -99,42 +100,95 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from 'vue'
 import { listProblemByPageUsingPost } from '@/api/problem'
+import { listTagUsingGet } from '@/api/tag'
+import type { TagVO } from '@/api/tag'
 import type { ProblemVO, ProblemQueryRequest } from '@/api/problem'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Document, Search, List } from '@element-plus/icons-vue' // 引入必要的图标
+import { Document, Search, List } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const dataList = ref<ProblemVO[]>([])
 const total = ref(0)
 const loading = ref(true)
+const tagList = ref<TagVO[]>([])
 
-// 移除 tags，保留最核心的搜索
 const searchParams = reactive<ProblemQueryRequest>({
   current: 1,
   pageSize: 10,
   title: '',
 })
 
-// 进度条颜色逻辑
 const customColors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 50 },
   { color: '#5cb87a', percentage: 100 },
 ]
 
+// ✅ 核心修复：解析标签数据
+// 它可以处理后端返回的 JSON 字符串，也可以处理已经是数组的情况
+const parseTags = (tags: any) => {
+  if (!tags) return []
+  // 如果已经是数组，直接返回
+  if (Array.isArray(tags)) {
+    return tags
+  }
+  // 如果是字符串，尝试解析
+  if (typeof tags === 'string') {
+    try {
+      return JSON.parse(tags)
+    } catch (e) {
+      // 解析失败但不是空串，当做单个标签处理
+      return tags.trim() ? [tags] : []
+    }
+  }
+  return []
+}
+
+// 辅助：获取标签名称
+const getTagName = (tag: any) => {
+  if (typeof tag === 'string') return tag
+  if (tag && typeof tag === 'object') return tag.name
+  return String(tag)
+}
+
+// 辅助：获取标签颜色
+const getTagColor = (tag: any) => {
+  // 1. 如果标签对象自带颜色，优先使用
+  if (typeof tag === 'object' && tag.color) {
+    return tag.color
+  }
+  // 2. 否则根据标签名去全局 tagList 里查
+  const name = getTagName(tag)
+  const found = tagList.value.find((t) => t.name === name)
+  if (found && found.color) return found.color
+
+  // 3. 都没有就不用颜色（Element 会用默认样式）
+  return ''
+}
+
+// 获取所有标签（用于补充颜色信息）
+const loadTags = async () => {
+  try {
+    const res = await listTagUsingGet()
+    if (Number(res.code) === 0) {
+      tagList.value = res.data
+    }
+  } catch (e) {
+    console.error("加载标签失败", e)
+  }
+}
+
 const loadData = async () => {
   loading.value = true
   try {
-    // 搜索时重置回第一页 (如果是由搜索框触发的，这里可以做判断，简单起见直接请求)
     const res = await listProblemByPageUsingPost(searchParams)
-    if (res.code === 0) {
+    if (Number(res.code) === 0) {
       dataList.value = res.data.records
-      total.value = res.data.total
+      total.value = Number(res.data.total)
     } else {
       ElMessage.error('加载失败: ' + res.message)
     }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('加载失败，请检查网络')
   } finally {
@@ -148,6 +202,7 @@ const toProblemPage = (problem: ProblemVO) => {
 
 onMounted(() => {
   loadData()
+  loadTags()
 })
 </script>
 
@@ -159,11 +214,10 @@ onMounted(() => {
 
 .table-card {
   border: none;
-  border-radius: 8px; /* 圆角稍微大一点 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 更柔和的阴影 */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* 头部布局：两端对齐 */
 .table-header {
   display: flex;
   justify-content: space-between;
@@ -182,10 +236,9 @@ onMounted(() => {
 }
 
 .search-box {
-  width: 300px; /* 限制搜索框宽度 */
+  width: 300px;
 }
 
-/* 优化搜索框样式 */
 .custom-search-input :deep(.el-input-group__append) {
   background-color: #fff;
   padding: 0 15px;
@@ -194,7 +247,6 @@ onMounted(() => {
   color: #409EFF;
 }
 
-/* 题目名称鼠标悬停效果 */
 .problem-title-text {
   font-weight: 500;
   font-size: 15px;
@@ -206,7 +258,6 @@ onMounted(() => {
   text-decoration: underline;
 }
 
-/* 进度条外层 */
 .progress-wrapper {
   width: 80%;
   margin: 0 auto;
