@@ -124,3 +124,8 @@ export const updateContestUsingPost = async (params: unknown) => {
 export const deleteContestUsingPost = async (params: { id: number }) => {
   return axios.post('/contest/delete', params) as unknown as Promise<BaseResponse<boolean>>
 }
+
+/** 获取比赛排行榜 */
+export const getContestRankUsingPost = (data: unknown) => {
+  return axios.post('/contest/rank/list/page', data) as unknown as Promise<BaseResponse<unknown>>
+}

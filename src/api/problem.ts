@@ -228,3 +228,24 @@ export const doProblemRunUsingPost = async (params: ProblemRunRequest) => {
     BaseResponse<ProblemSubmitVO>
   >
 }
+
+/**
+ * 比赛题目项 (可能叫这个名字，也可能直接定义在 ContestAddRequest 里)
+ */
+export interface ContestProblemItem {
+  id: number;
+  title?: string;
+  displayTitle?: string;
+  // ✅✅✅ 新增这一行
+  score?: number;
+}
+
+/**
+ * 创建比赛请求
+ */
+export interface ContestAddRequest {
+  title?: string;
+  description?: string;
+  // ...
+  problems: ContestProblemItem[]; 
+}

@@ -323,7 +323,7 @@ const doSubmit = async () => {
   const contestId = route.query.contestId
     ? Number(route.query.contestId)
     : undefined
-
+  console.log('提交时的 contestId:', contestId)
   const res = await doProblemSubmitUsingPost({
     problemId: problem.value.id,
     language: form.language,

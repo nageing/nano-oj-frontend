@@ -42,7 +42,7 @@
                     :color="getTagColor(tag)"
                     effect="dark"
                     size="small"
-                    style="margin-right: 6px; border: none;"
+                    style="margin-right: 6px; border: none"
                     round
                   >
                     {{ getTagName(tag) }}
@@ -88,14 +88,25 @@
           <template #header>
             <div class="card-header">
               <span>✅ 已选题目 ({{ form.problems.length }})</span>
-              <el-button
-                type="danger"
-                link
-                size="small"
-                @click="clearAll"
-                v-if="form.problems.length > 0"
-                >清空</el-button
-              >
+              <div class="header-right">
+                <el-tag
+                  v-if="form.type === 1"
+                  type="warning"
+                  size="small"
+                  style="margin-right: 10px"
+                >
+                  OI赛制可设置分数
+                </el-tag>
+                <el-button
+                  type="danger"
+                  link
+                  size="small"
+                  @click="clearAll"
+                  v-if="form.problems.length > 0"
+                >
+                  清空
+                </el-button>
+              </div>
             </div>
           </template>
 
@@ -110,12 +121,25 @@
               <li v-for="(item, index) in form.problems" :key="item.id" class="selected-item">
                 <span class="index-badge">{{ index + 1 }}</span>
                 <span class="item-text">{{ item.title }}</span>
+
+                <div v-if="form.type === 1" class="score-input-box">
+                  <span class="score-label">分值</span>
+                  <el-input-number
+                    v-model="item.score"
+                    :min="0"
+                    :max="1000"
+                    size="small"
+                    controls-position="right"
+                    style="width: 90px"
+                  />
+                </div>
                 <el-button
                   type="danger"
                   circle
                   size="small"
                   :icon="Delete"
                   @click="removeProblem(index)"
+                  style="margin-left: 10px"
                 />
               </li>
             </transition-group>
@@ -138,6 +162,8 @@ import { type ContestAddRequest } from '@/api/contest'
 import { ElMessage } from 'element-plus'
 import { Search, Plus, Delete } from '@element-plus/icons-vue'
 import { TagVO } from '@/api/problem'
+
+// form 里面应该包含了 type (0=ACM, 1=OI)
 const form = defineModel<ContestAddRequest>('form', { required: true })
 const emit = defineEmits(['prev', 'next'])
 
@@ -149,39 +175,29 @@ const searchParams = reactive({
   title: '',
 })
 
-// ✅ 核心修复：解析标签数据（兼容对象数组和JSON字符串）
+// ... parseTags, getTagName, getTagColor 保持不变 ...
 const parseTags = (tags: TagVO) => {
   if (!tags) return []
-  // 1. 如果已经是数组（新版后端返回的 List<TagVO>）
-  if (Array.isArray(tags)) {
-    return tags
-  }
-  // 2. 如果是字符串（旧数据可能残留），尝试解析
+  if (Array.isArray(tags)) return tags
   if (typeof tags === 'string') {
     try {
       return JSON.parse(tags)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       return []
     }
   }
   return []
 }
-
-// 辅助：获取标签名称
 const getTagName = (tag: TagVO) => {
   if (typeof tag === 'string') return tag
   if (tag && typeof tag === 'object') return tag.name
   return String(tag)
 }
-
-// 辅助：获取标签颜色
 const getTagColor = (tag: TagVO) => {
-  if (typeof tag === 'object' && tag.color) {
-    return tag.color
-  }
+  if (typeof tag === 'object' && tag.color) return tag.color
   return ''
 }
+// ...
 
 const loadData = async () => {
   const res = await listProblemByPageUsingPost(searchParams)
@@ -208,6 +224,8 @@ const addProblem = (problem: ProblemVO) => {
     id: problem.id,
     title: problem.title,
     displayTitle: problem.title,
+    // ✅ 新增：初始化 score，OI 赛制默认为 100，ACM 赛制这个字段会被忽略
+    score: 100
   })
 }
 
@@ -229,7 +247,7 @@ const handleNext = () => {
 </script>
 
 <style scoped>
-/* 样式保持不变 */
+/* 原有样式 */
 .search-container {
   display: flex;
   justify-content: center;
@@ -292,12 +310,12 @@ const handleNext = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-right: 10px; /* 防止文字紧贴按钮 */
 }
 .action-bar {
   margin-top: 24px;
   text-align: center;
 }
-/* List Transition */
 .list-enter-active,
 .list-leave-active {
   transition: all 0.4s ease;
@@ -306,5 +324,20 @@ const handleNext = () => {
 .list-leave-to {
   opacity: 0;
   transform: translateX(30px);
+}
+
+/* ✅ 新增样式：分数输入框区域 */
+.score-input-box {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+.score-label {
+  font-size: 12px;
+  color: #909399;
+  margin-right: 5px;
 }
 </style>
