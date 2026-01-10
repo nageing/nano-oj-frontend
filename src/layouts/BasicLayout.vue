@@ -62,8 +62,9 @@ const isProblemPage = computed(() => {
   width: 100vw;
   display: flex;
   flex-direction: column;
-  /* ✨ 背景不再是单调的灰，加一点点渐变氛围 */
-  background: linear-gradient(to bottom, #f5f7fa 0%, #f0f2f5 100%);
+  /* ✨ 修改：背景渐变适配暗黑模式 */
+  /* page 通常是基础底色，fill-color 是稍深一点的填充色，形成微弱渐变 */
+  background: linear-gradient(to bottom, var(--el-bg-color-page) 0%, var(--el-fill-color) 100%);
   overflow: hidden;
   font-family:
     'Inter',
@@ -74,6 +75,8 @@ const isProblemPage = computed(() => {
     'Helvetica Neue',
     Arial,
     sans-serif;
+  /* 平滑过渡背景色切换 */
+  transition: background 0.3s;
 }
 
 .layout-container {
@@ -85,11 +88,14 @@ const isProblemPage = computed(() => {
 .header {
   height: 64px;
   padding: 0;
-  background: #fff;
-  /* 阴影更柔和 */
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.04);
+  /* ✨ 修改：Header 背景色 */
+  background: var(--el-bg-color);
+  /* ✨ 修改：使用边框代替阴影 (暗黑模式下阴影看不清，边框更通用) */
+  /* 或者使用 var(--el-box-shadow-lighter) */
+  border-bottom: 1px solid var(--el-border-color-light);
   z-index: 100;
   flex-shrink: 0;
+  transition: background-color 0.3s;
 }
 
 .main-content {
@@ -129,27 +135,30 @@ const isProblemPage = computed(() => {
 .footer-links {
   display: flex;
   align-items: center;
-  gap: 24px; /* 间距拉大一点 */
+  gap: 24px;
 }
 
 .footer-link {
-  color: #606266;
+  /* ✨ 修改：常规文字颜色 */
+  color: var(--el-text-color-regular);
   font-size: 14px;
   text-decoration: none;
-  font-weight: 500; /* 字体稍微加粗 */
+  font-weight: 500;
   transition: all 0.3s ease;
   opacity: 0.8;
 }
 
 .footer-link:hover {
-  color: #409eff;
+  /* ✨ 修改：主色调 */
+  color: var(--el-color-primary);
   opacity: 1;
-  transform: translateY(-1px); /* 悬停微微上浮 */
+  transform: translateY(-1px);
 }
 
 .copyright-row {
   font-size: 13px;
-  color: #909399;
+  /* ✨ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -159,7 +168,8 @@ const isProblemPage = computed(() => {
 /* ✨ 核心：渐变色文字效果 */
 .author-gradient {
   font-weight: 800;
-  background: linear-gradient(45deg, #409eff, #36cfc9);
+  /* ✨ 修改：使用 Primary (蓝) 和 Success (青/绿) 混合渐变，保证主题统一 */
+  background: linear-gradient(45deg, var(--el-color-primary), var(--el-color-success));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -169,7 +179,7 @@ const isProblemPage = computed(() => {
 
 .year {
   margin-left: 4px;
-  font-family: monospace; /* 年份用等宽字体更有极客感 */
+  font-family: monospace;
 }
 
 .problem-mode {

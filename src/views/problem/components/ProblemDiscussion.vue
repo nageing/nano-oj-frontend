@@ -151,7 +151,8 @@ defineExpose({ loadPosts })
   width: 6px;
 }
 .post-list-scroll::-webkit-scrollbar-thumb {
-  background: #dcdfe6;
+  /* ✅ 修改：滚动条颜色 */
+  background: var(--el-border-color-lighter);
   border-radius: 4px;
 }
 .post-list-scroll::-webkit-scrollbar-track {
@@ -160,11 +161,13 @@ defineExpose({ loadPosts })
 
 .post-card {
   padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  /* ✅ 修改：分割线颜色 */
+  border-bottom: 1px solid var(--el-border-color-lighter);
   transition: background 0.2s;
 }
 .post-card:hover {
-  background: #fafafa;
+  /* ✅ 修改：悬浮背景色 */
+  background: var(--el-fill-color-light);
 }
 .post-header {
   display: flex;
@@ -179,21 +182,25 @@ defineExpose({ loadPosts })
 .username {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  /* ✅ 修改：一级文字颜色 */
+  color: var(--el-text-color-primary);
 }
 .time {
   font-size: 12px;
-  color: #999;
+  /* ✅ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
 }
 .post-content {
   font-size: 14px;
-  color: #444;
+  /* ✅ 修改：常规文字颜色 */
+  color: var(--el-text-color-regular);
   line-height: 1.5;
   white-space: pre-wrap;
 }
 .no-more-text {
   font-size: 12px;
-  color: #ccc;
+  /* ✅ 修改：占位文字颜色 */
+  color: var(--el-text-color-placeholder);
   display: block;
   padding: 10px 0;
 }
@@ -203,8 +210,11 @@ defineExpose({ loadPosts })
   left: 0;
   right: 0;
   padding: 12px 16px;
-  background: #fff;
-  border-top: 1px solid #e4e7ed;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  /* ✅ 修改：背景色 */
+  background: var(--el-bg-color);
+  /* ✅ 修改：顶部边框 */
+  border-top: 1px solid var(--el-border-color-light);
+  /* ✅ 修改：阴影 */
+  box-shadow: 0 -2px 10px var(--el-box-shadow-lighter);
 }
 </style>

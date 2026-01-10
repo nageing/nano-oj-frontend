@@ -1,0 +1,27 @@
+/* src/assets/main.css */
+
+/* 1. 设置全局背景和文字颜色跟随 Element Plus 变量 */
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  /* 关键：使用 Element Plus 的语义化变量，不要写死 white 或 black */
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  transition: background-color 0.3s, color 0.3s; /* 增加丝滑过渡 */
+}
+
+/* 2. 暗黑模式下的滚动条美化 (可选) */
+html.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}

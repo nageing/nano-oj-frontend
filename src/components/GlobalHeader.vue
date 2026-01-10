@@ -2,7 +2,7 @@
   <div id="globalHeader">
     <div class="header-inner">
       <div class="logo-section" @click="router.push('/')">
-        <el-icon class="logo-icon" size="28" color="#409eff"><Platform /></el-icon>
+        <el-icon class="logo-icon" size="28" color="var(--el-color-primary)"><Platform /></el-icon>
         <span class="logo-text">Nano OJ</span>
       </div>
 
@@ -25,6 +25,8 @@
       </el-menu>
 
       <div class="user-section">
+        <ThemeToggle class="theme-btn" />
+
         <template v-if="userStore.loginUser.userName !== '未登录'">
           <el-dropdown trigger="click" class="user-dropdown">
             <div class="user-info-box">
@@ -51,7 +53,7 @@
                 >
                   <el-icon><Setting /></el-icon> 后台管理
                 </el-dropdown-item>
-                <el-dropdown-item divided @click="doLogout" style="color: #f56c6c;">
+                <el-dropdown-item divided @click="doLogout" style="color: var(--el-color-danger)">
                   <el-icon><SwitchButton /></el-icon> 退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -84,6 +86,8 @@ import checkAccess from '@/access/checkAccess'
 import ACCESS_ENUM from '@/access/accessEnum'
 import { userLogoutUsingPost } from '@/api/user'
 import { useUserStore } from '@/store/user'
+// ✅ 引入主题切换组件
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -128,11 +132,12 @@ const doLogout = async () => {
 
 <style scoped>
 #globalHeader {
-  /* ✨ 修改点：调整背景色，更通透的毛玻璃效果 */
-  background: rgba(255, 255, 255, 0.8);
+  /* ✅ 修改：使用 Element 语义背景色，适配暗黑模式 */
+  background: var(--el-bg-color);
+  /* 保持毛玻璃效果，但在暗黑模式下可能不太明显，主要靠 bg-color 切换 */
   backdrop-filter: blur(12px);
-  /* 底部增加一根极细的边框代替沉重的阴影，更显精致 */
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  /* ✅ 修改：边框颜色使用变量 */
+  border-bottom: 1px solid var(--el-border-color-light);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -140,14 +145,12 @@ const doLogout = async () => {
 }
 
 .header-inner {
-  /* ✨ 修改点：宽度铺满，不再限制 1400px，让 Logo 和 头像尽可能靠两边 */
   width: 100%;
-  box-sizing: border-box; /* 确保 padding 不会撑破宽度 */
+  box-sizing: border-box;
   margin: 0 auto;
   height: 64px;
   display: flex;
   align-items: center;
-  /* ✨ 修改点：保留左右间距，既贴边又有呼吸感 */
   padding: 0 24px;
 }
 
@@ -155,15 +158,15 @@ const doLogout = async () => {
 .logo-section {
   display: flex;
   align-items: center;
-  /* ✨ 修改点：减少 Logo 右侧间距，让菜单稍微靠左一点 */
   margin-right: 40px;
   cursor: pointer;
   user-select: none;
-  flex-shrink: 0; /* 防止被挤压 */
+  flex-shrink: 0;
 }
 
 .logo-icon {
   margin-right: 8px;
+  /* 阴影颜色也建议用变量，或者保持蓝色品牌的固定色 */
   filter: drop-shadow(0 2px 4px rgba(64, 158, 255, 0.4));
 }
 
@@ -171,10 +174,10 @@ const doLogout = async () => {
   font-size: 24px;
   font-weight: 800;
   font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, sans-serif;
-  background: linear-gradient(120deg, #409eff 0%, #3a7afe 100%);
+  /* Logo 渐变色通常是品牌标识，可以保持不变，或者用 var(--el-color-primary) */
+  background: linear-gradient(120deg, var(--el-color-primary) 0%, #3a7afe 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  /* ✨ 修改点：添加标准属性以兼容更多浏览器 */
   background-clip: text;
   letter-spacing: 1px;
 }
@@ -184,13 +187,13 @@ const doLogout = async () => {
   border-bottom: none !important;
   flex: 1;
   background: transparent;
-  /* 让菜单内容不要被挤压 */
   min-width: 400px;
 }
 
 :deep(.el-menu-item) {
   font-size: 16px;
-  color: #555;
+  /* ✅ 修改：文字颜色使用变量 */
+  color: var(--el-text-color-regular);
   margin: 0 4px;
   border-radius: 8px;
   height: 40px !important;
@@ -202,13 +205,15 @@ const doLogout = async () => {
 }
 
 :deep(.el-menu-item:hover) {
-  background: rgba(64, 158, 255, 0.08);
-  color: #409eff !important;
+  /* ✅ 修改：悬浮背景使用 primary-light-9 (Element Plus 标准悬浮色) */
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary) !important;
 }
 
 :deep(.el-menu-item.is-active) {
-  color: #409eff !important;
-  background: rgba(64, 158, 255, 0.1);
+  color: var(--el-color-primary) !important;
+  /* ✅ 修改：选中背景 */
+  background: var(--el-color-primary-light-9);
   font-weight: 600;
 }
 
@@ -219,7 +224,8 @@ const doLogout = async () => {
   left: 50%;
   width: 0;
   height: 3px;
-  background: #409eff;
+  /* ✅ 修改：下划线颜色 */
+  background: var(--el-color-primary);
   border-radius: 3px;
   transition: all 0.3s;
   transform: translateX(-50%);
@@ -233,9 +239,12 @@ const doLogout = async () => {
 .user-section {
   display: flex;
   align-items: center;
-  /* ✨ 修改点：使用 margin-left: auto 强行推到最右侧 */
   margin-left: auto;
-  /* ✨ 修改点：这里不需要 margin-right 了，因为外层 container 已经有 padding */
+}
+
+/* ✅ 新增：主题开关间距 */
+.theme-btn {
+  margin-right: 16px;
 }
 
 .guest-actions {
@@ -259,17 +268,19 @@ const doLogout = async () => {
   align-items: center;
   cursor: pointer;
   padding: 6px 12px;
-  border-radius: 24px; /* 更圆润 */
+  border-radius: 24px;
   transition: all 0.3s;
   background: transparent;
 }
 
 .user-info-box:hover {
-  background: rgba(0, 0, 0, 0.04);
+  /* ✅ 修改：悬浮背景使用 fill-color (自适应深浅) */
+  background: var(--el-fill-color);
 }
 
 .user-avatar {
-  border: 2px solid #fff;
+  /* ✅ 修改：边框颜色跟随背景 */
+  border: 2px solid var(--el-bg-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -283,14 +294,16 @@ const doLogout = async () => {
 
 .user-name {
   font-size: 15px;
-  color: #333;
+  /* ✅ 修改：文字颜色 */
+  color: var(--el-text-color-primary);
   font-weight: 500;
 }
 
 .user-role-badge {
   font-size: 10px;
-  color: #fff;
-  background: #67c23a;
+  color: #fff; /* 徽章文字通常保持白色 */
+  /* ✅ 修改：背景色 */
+  background: var(--el-color-success);
   padding: 0 4px;
   border-radius: 4px;
   width: fit-content;
@@ -298,7 +311,8 @@ const doLogout = async () => {
 }
 
 .dropdown-icon {
-  color: #909399;
+  /* ✅ 修改：图标颜色 */
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 </style>

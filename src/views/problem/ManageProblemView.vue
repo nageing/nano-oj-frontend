@@ -231,12 +231,16 @@ onMounted(() => {
 .problem-card {
   transition: all 0.3s;
   border-radius: 8px;
-  border: 1px solid #ebeef5;
+  /* ✅ 修改：使用语义化边框颜色 */
+  border: 1px solid var(--el-border-color-light);
+  /* ✅ 新增：显式指定背景色，防止暗黑模式透明 */
+  background-color: var(--el-bg-color-overlay);
 }
 
 .problem-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  /* ✅ 修改：使用 Element 标准阴影变量 */
+  box-shadow: var(--el-box-shadow-light);
 }
 
 .card-header {
@@ -253,9 +257,13 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 180px;
+  /* ✅ 新增：指定文字颜色 */
+  color: var(--el-text-color-primary);
+  transition: color 0.2s;
 }
 .card-header .title:hover {
-  color: #409eff;
+  /* ✅ 修改：使用主色调变量 */
+  color: var(--el-color-primary);
 }
 
 .card-body {
@@ -277,7 +285,8 @@ onMounted(() => {
 .card-footer {
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid #f0f0f0;
+  /* ✅ 修改：使用更淡的边框变量做分隔线 */
+  border-top: 1px solid var(--el-border-color-lighter);
   padding-top: 10px;
   gap: 10px;
 }

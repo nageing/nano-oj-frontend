@@ -175,7 +175,6 @@
               style="width: 100%"
               v-loading="rankLoading"
               :cell-style="{ padding: '8px 0' }"
-              :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
             >
               <el-table-column label="Rank" width="80" align="center" fixed="left">
                 <template #default="{ row }">
@@ -553,7 +552,8 @@ const isOiRunning = computed(() => {
   font-size: 26px;
   font-weight: 700;
   margin: 0 0 16px 0;
-  color: #1a1a1a;
+  /* ✅ 修改：一级标题颜色 */
+  color: var(--el-text-color-primary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -563,15 +563,19 @@ const isOiRunning = computed(() => {
   align-items: center;
   gap: 16px;
   font-size: 14px;
-  color: #666;
+  /* ✅ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
 }
 .time-range {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #f4f4f5;
+  /* ✅ 修改：浅色填充背景 */
+  background: var(--el-fill-color-light);
   padding: 4px 10px;
   border-radius: 4px;
+  /* ✅ 新增：确保文字颜色正确 */
+  color: var(--el-text-color-regular);
 }
 .right-action {
   display: flex;
@@ -584,17 +588,20 @@ const isOiRunning = computed(() => {
 }
 .countdown-box .label {
   font-size: 12px;
-  color: #909399;
+  /* ✅ 修改：次要文字 */
+  color: var(--el-text-color-secondary);
   margin-bottom: 2px;
 }
 .countdown-box .timer {
   font-family: 'Monaco', monospace;
   font-size: 24px;
   font-weight: 700;
-  color: #409eff;
+  /* ✅ 修改：主色 */
+  color: var(--el-color-primary);
 }
 .countdown-box .timer.urgent {
-  color: #f56c6c;
+  /* ✅ 修改：危险色 */
+  color: var(--el-color-danger);
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
@@ -611,15 +618,15 @@ const isOiRunning = computed(() => {
 .lock-tip {
   padding: 80px 0;
   text-align: center;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 .problem-id {
   font-weight: bold;
-  color: #303133;
+  color: var(--el-text-color-primary);
 }
 .problem-title {
   font-weight: 500;
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 .medal {
   width: 28px;
@@ -632,6 +639,7 @@ const isOiRunning = computed(() => {
   font-family: 'Impact', sans-serif;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+/* 奖牌颜色保持硬编码，因其为特殊视觉元素 */
 .gold {
   background: linear-gradient(135deg, #ffd700, #f6c442);
   text-shadow: 1px 1px 0 #b8860b;
@@ -646,7 +654,7 @@ const isOiRunning = computed(() => {
 }
 .rank-text {
   font-weight: 600;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 .user-cell {
   display: flex;
@@ -654,7 +662,7 @@ const isOiRunning = computed(() => {
   gap: 12px;
 }
 .user-avatar {
-  background: #409eff;
+  background: var(--el-color-primary);
   color: #fff;
   font-weight: bold;
   font-size: 14px;
@@ -667,11 +675,11 @@ const isOiRunning = computed(() => {
 .user-detail .name {
   font-weight: 600;
   font-size: 14px;
-  color: #303133;
+  color: var(--el-text-color-primary);
 }
 .user-detail .nickname {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 .acm-total {
   display: flex;
@@ -681,15 +689,15 @@ const isOiRunning = computed(() => {
 .solved-num {
   font-size: 18px;
   font-weight: 700;
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 .total-time {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 .problem-header-link {
   cursor: pointer;
-  color: #409eff;
+  color: var(--el-color-primary);
   font-weight: bold;
   display: inline-block;
   padding: 4px;
@@ -715,8 +723,9 @@ const isOiRunning = computed(() => {
   color: #fff;
   transition: all 0.2s;
 }
+/* AC 状态可以使用 success 变量，或者保持现在的绿色以符合 ACM 习惯 */
 .acm-status.ac {
-  background-color: #2cbb5d;
+  background-color: var(--el-color-success); /* 或保持 #2cbb5d */
   box-shadow: 0 2px 4px rgba(44, 187, 93, 0.2);
 }
 .acm-status.ac .ac-time {
@@ -728,19 +737,19 @@ const isOiRunning = computed(() => {
   opacity: 0.8;
 }
 .acm-status.wa {
-  background-color: #e74c3c;
+  background-color: var(--el-color-danger); /* 或保持 #e74c3c */
   opacity: 0.8;
 }
 .oi-status {
   font-weight: bold;
   font-size: 15px;
-  color: #e6a23c;
+  color: var(--el-color-warning); /* #e6a23c */
 }
 .oi-status.full-mark {
-  color: #67c23a;
+  color: var(--el-color-success); /* #67c23a */
 }
 .oi-status.zero-mark {
-  color: #f56c6c;
+  color: var(--el-color-danger); /* #f56c6c */
 }
 .pagination-box {
   margin-top: 20px;

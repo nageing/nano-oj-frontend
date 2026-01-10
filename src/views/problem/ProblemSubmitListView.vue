@@ -539,7 +539,8 @@ const doSubmit = async () => {
 <style scoped>
 #problemSubmitView {
   width: 100%;
-  background-color: #fff;
+  /* ✅ 修改：使用语义化背景 */
+  background-color: var(--el-bg-color);
   overflow: hidden;
 }
 
@@ -549,20 +550,22 @@ const doSubmit = async () => {
   width: 100%;
 }
 :deep(.splitpanes__splitter) {
-  background-color: #f0f0f0;
-  border-left: 1px solid #e0e0e0;
+  /* ✅ 修改：分割线背景 */
+  background-color: var(--el-bg-color-page);
+  border-left: 1px solid var(--el-border-color-light);
   width: 6px;
   cursor: col-resize;
   transition: background-color 0.2s;
 }
 :deep(.splitpanes__splitter:hover) {
-  background-color: #409eff;
+  /* ✅ 修改：高亮色 */
+  background-color: var(--el-color-primary);
 }
 
 /* 左侧布局 */
 .left-pane {
   height: 100%;
-  background: #fff;
+  background: var(--el-bg-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -571,13 +574,14 @@ const doSubmit = async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--el-bg-color);
 }
 :deep(.left-tabs .el-tabs__header) {
   margin: 0;
   padding: 0 20px;
-  background: #f9fafc;
-  border-bottom: 1px solid #e4e7ed;
+  /* ✅ 修改：Tab 头部背景 */
+  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
 }
 :deep(.left-tabs .el-tabs__nav-wrap::after) {
   height: 0;
@@ -586,17 +590,18 @@ const doSubmit = async () => {
   height: 48px;
   line-height: 48px;
   font-size: 15px;
-  color: #606266;
+  /* ✅ 修改：常规文字颜色 */
+  color: var(--el-text-color-regular);
   transition: all 0.3s;
 }
 :deep(.left-tabs .el-tabs__item:hover) {
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 :deep(.left-tabs .el-tabs__item.is-active) {
-  color: #409eff;
+  color: var(--el-color-primary);
   font-weight: 600;
-  background: #fff;
-  border-bottom: 2px solid #409eff;
+  background: var(--el-bg-color);
+  border-bottom: 2px solid var(--el-color-primary);
 }
 :deep(.left-tabs .el-tabs__content) {
   flex: 1;
@@ -621,7 +626,7 @@ const doSubmit = async () => {
   width: 6px;
 }
 .left-panel-scroll::-webkit-scrollbar-thumb {
-  background: #dcdfe6;
+  background: var(--el-border-color-lighter);
   border-radius: 4px;
 }
 .left-panel-scroll::-webkit-scrollbar-track {
@@ -636,10 +641,10 @@ const doSubmit = async () => {
 }
 .record-pagination {
   padding: 12px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: center;
-  background: #fff;
+  background: var(--el-bg-color);
 }
 
 /* ✨✨✨ 讨论区样式 ✨✨✨ */
@@ -653,15 +658,15 @@ const doSubmit = async () => {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  padding-bottom: 80px; /* 留出底部输入框的位置 */
+  padding-bottom: 80px;
 }
 .post-card {
   padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   transition: background 0.2s;
 }
 .post-card:hover {
-  background: #fafafa;
+  background: var(--el-fill-color-light);
 }
 .post-header {
   display: flex;
@@ -676,21 +681,21 @@ const doSubmit = async () => {
 .username {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--el-text-color-primary);
 }
 .time {
   font-size: 12px;
-  color: #999;
+  color: var(--el-text-color-secondary);
 }
 .post-content {
   font-size: 14px;
-  color: #444;
+  color: var(--el-text-color-regular);
   line-height: 1.5;
   white-space: pre-wrap;
 }
 .no-more-text {
   font-size: 12px;
-  color: #ccc;
+  color: var(--el-text-color-placeholder);
   display: block;
   padding: 10px 0;
 }
@@ -700,9 +705,9 @@ const doSubmit = async () => {
   left: 0;
   right: 0;
   padding: 12px 16px;
-  background: #fff;
-  border-top: 1px solid #e4e7ed;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  background: var(--el-bg-color);
+  border-top: 1px solid var(--el-border-color-light);
+  box-shadow: 0 -2px 10px var(--el-box-shadow-lighter);
 }
 
 /* 右侧保持不变 */
@@ -710,7 +715,7 @@ const doSubmit = async () => {
   height: 100%;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: var(--el-bg-color);
 }
 .right-panel-content {
   height: 100%;
@@ -721,8 +726,8 @@ const doSubmit = async () => {
 
 .editor-toolbar {
   height: 48px;
-  background: #fff;
-  border-bottom: 1px solid #dcdfe6;
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -738,7 +743,8 @@ const doSubmit = async () => {
 
 .status-bar {
   height: 28px;
-  background: #007acc;
+  /* 状态栏通常保持深色，或者用 primary */
+  background: var(--el-color-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -751,7 +757,7 @@ const doSubmit = async () => {
   transition: background 0.2s;
 }
 .status-bar:hover {
-  background: #0062a3;
+  background: var(--el-color-primary-dark-2);
 }
 .status-item {
   display: flex;
@@ -768,9 +774,9 @@ const doSubmit = async () => {
   left: 0;
   right: 0;
   height: 280px;
-  background: #fff;
-  border-top: 1px solid #dcdfe6;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  background: var(--el-bg-color);
+  border-top: 1px solid var(--el-border-color-light);
+  box-shadow: 0 -4px 16px var(--el-box-shadow-light);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -783,8 +789,8 @@ const doSubmit = async () => {
 
 .console-header {
   height: 40px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -802,21 +808,21 @@ const doSubmit = async () => {
   display: flex;
   align-items: center;
   font-size: 13px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
 }
 .tab-btn:hover {
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 .tab-btn.active {
-  color: #409eff;
-  border-bottom-color: #409eff;
+  color: var(--el-color-primary);
+  border-bottom-color: var(--el-color-primary);
   font-weight: 600;
 }
 .arrow-icon {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   transition: transform 0.3s;
 }
 .arrow-icon.rotate {
@@ -825,7 +831,7 @@ const doSubmit = async () => {
 .console-content {
   flex: 1;
   overflow: hidden;
-  background: #fff;
+  background: var(--el-bg-color);
   position: relative;
 }
 .tab-pane {
@@ -838,18 +844,20 @@ const doSubmit = async () => {
   border-radius: 0;
   padding: 12px;
   font-family: Consolas, monospace;
-  background: #fff;
+  background: var(--el-bg-color);
   height: 100%;
   box-shadow: none;
   resize: none;
   font-size: 14px;
+  /* ✅ 新增：确保输入框文字颜色 */
+  color: var(--el-text-color-primary);
 }
 .result-code {
   margin: 0;
   padding: 16px;
   font-family: Consolas, monospace;
   font-size: 14px;
-  color: #303133;
+  color: var(--el-text-color-primary);
   height: 100%;
   overflow: auto;
   white-space: pre-wrap;
@@ -860,7 +868,7 @@ const doSubmit = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   gap: 12px;
 }
 
@@ -874,7 +882,7 @@ const doSubmit = async () => {
 .title {
   font-size: 24px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--el-text-color-primary);
   margin-bottom: 12px;
 }
 .tags-row {
@@ -887,15 +895,16 @@ const doSubmit = async () => {
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: #666;
-  background: #f2f3f5;
+  color: var(--el-text-color-regular);
+  /* ✅ 修改：使用浅色填充 */
+  background: var(--el-fill-color);
   padding: 4px 10px;
   border-radius: 4px;
 }
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--el-text-color-primary);
   margin: 32px 0 12px;
   display: flex;
   align-items: center;
@@ -903,14 +912,15 @@ const doSubmit = async () => {
 }
 .sub-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-weight: normal;
   margin-left: 8px;
 }
 .markdown-body-wrapper {
   font-size: 14px;
   line-height: 1.6;
-  color: #262626;
+  color: var(--el-text-color-primary);
+  /* 确保 Markdown 内部元素继承颜色，或手动适配 dark mode */
 }
 .examples-container {
   display: flex;
@@ -918,19 +928,19 @@ const doSubmit = async () => {
   gap: 16px;
 }
 .example-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--el-border-color);
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s;
 }
 .example-card:hover {
-  border-color: #c0c4cc;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--el-border-color-darker);
+  box-shadow: var(--el-box-shadow-light);
 }
 .example-header {
   height: 32px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -957,39 +967,39 @@ const doSubmit = async () => {
 .ex-title {
   font-size: 12px;
   font-weight: 600;
-  color: #606266;
+  color: var(--el-text-color-regular);
   margin-left: 10px;
 }
 .copy-btn {
   cursor: pointer;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   transition: color 0.2s;
 }
 .copy-btn:hover {
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 .example-body {
   padding: 12px;
-  background: #fff;
+  background: var(--el-bg-color);
 }
 .io-group {
   margin-bottom: 10px;
 }
 .io-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 4px;
   display: block;
   font-weight: bold;
 }
 .io-content {
-  background: #fafafa;
+  background: var(--el-fill-color);
   padding: 8px 12px;
   border-radius: 4px;
   font-family: monospace;
   font-size: 13px;
-  color: #303133;
-  border: 1px solid #ebeef5;
+  color: var(--el-text-color-primary);
+  border: 1px solid var(--el-border-color-lighter);
   white-space: pre-wrap;
 }
 </style>

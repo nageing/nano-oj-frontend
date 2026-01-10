@@ -268,7 +268,7 @@ const handleNext = () => {
   padding: 10px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--el-bg-color);
 }
 .selected-list-container {
   flex: 1;
@@ -285,16 +285,16 @@ const handleNext = () => {
   align-items: center;
   padding: 10px;
   margin-bottom: 8px;
-  background-color: #f8f9fa;
+  background-color: var(--el-bg-color);
   border-radius: 6px;
   transition: all 0.3s;
 }
 .selected-item:hover {
-  background-color: #ecf5ff;
+  background-color: var(--el-fill-color-light);
   transform: translateX(5px);
 }
 .index-badge {
-  background-color: #909399;
+  background-color: var(--el-border-color);
   color: white;
   width: 20px;
   height: 20px;
@@ -307,7 +307,7 @@ const handleNext = () => {
 .item-text {
   flex: 1;
   font-size: 14px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -331,14 +331,14 @@ const handleNext = () => {
 .score-input-box {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--el-bg-color);
   padding: 2px 5px;
   border-radius: 4px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color);
 }
 .score-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-placeholder);
   margin-right: 5px;
 }
 </style>

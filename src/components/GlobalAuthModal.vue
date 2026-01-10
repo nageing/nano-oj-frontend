@@ -226,12 +226,14 @@ const handleRegister = async () => {
 .title {
   margin: 0;
   font-size: 24px;
-  color: #333;
+  /* ✅ 修改：使用一级文字颜色变量 (自动适配黑/白) */
+  color: var(--el-text-color-primary);
 }
 .subtitle {
   margin: 8px 0 0;
   font-size: 14px;
-  color: #999;
+  /* ✅ 修改：使用二级文字颜色变量 */
+  color: var(--el-text-color-secondary);
 }
 .submit-btn {
   width: 100%;
@@ -244,6 +246,8 @@ const handleRegister = async () => {
 :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
+  /* ✅ 建议添加：确保 Dialog 背景色跟随主题 (暗黑模式下为深灰) */
+  background-color: var(--el-bg-color-overlay);
 }
 :deep(.el-dialog__header) {
   display: none;

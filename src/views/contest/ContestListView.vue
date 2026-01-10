@@ -347,104 +347,141 @@ const handleDelete = (row: ContestVO) => {
   margin: 0 auto;
   padding: 20px;
 }
+
 .search-bar {
   margin-bottom: 20px;
-  background: #fff;
+  /* ✅ 修改：使用遮罩层背景色 (适配暗黑) */
+  background: var(--el-bg-color-overlay);
   padding: 18px;
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  /* ✅ 修改：语义化阴影 */
+  box-shadow: var(--el-box-shadow-light);
+  /* 建议添加边框以增强暗黑模式下的轮廓 */
+  border: 1px solid var(--el-border-color-lighter);
 }
+
 .contest-item {
   margin-bottom: 16px;
   cursor: pointer;
   transition: all 0.2s;
+  /* ✅ 新增：给列表项显式添加背景色，否则暗黑模式下可能是透明的 */
+  background: var(--el-bg-color-overlay);
+  border-radius: 8px;
+  border: 1px solid var(--el-border-color-lighter);
 }
+
 .contest-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  /* ✅ 修改：悬浮阴影 */
+  box-shadow: var(--el-box-shadow);
+  border-color: var(--el-border-color-light);
 }
+
 .contest-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 20px; /* 移入 padding 保证 hover 效果好看 */
 }
+
 .left-section {
   display: flex;
   align-items: center;
   flex: 1.5;
 }
+
 .contest-icon {
   width: 60px;
   height: 60px;
-  background: #ecf5ff;
+  /* ✅ 修改：使用 Primary 的浅色变体 (Light-9) */
+  background: var(--el-color-primary-light-9);
+  /* ✅ 新增：图标颜色 */
+  color: var(--el-color-primary);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-right: 16px;
 }
+
 .info .title {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: #303133;
+  /* ✅ 修改：一级文字颜色 */
+  color: var(--el-text-color-primary);
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .info .tags {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .creator {
   font-size: 13px;
-  color: #909399;
+  /* ✅ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
 }
+
 .mid-section {
   flex: 1;
-  border-left: 1px solid #ebeef5;
-  border-right: 1px solid #ebeef5;
+  /* ✅ 修改：边框颜色 */
+  border-left: 1px solid var(--el-border-color-lighter);
+  border-right: 1px solid var(--el-border-color-lighter);
   padding: 0 24px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+
 .time-row {
   font-size: 13px;
-  color: #606266;
+  /* ✅ 修改：常规文字颜色 */
+  color: var(--el-text-color-regular);
   margin-bottom: 4px;
 }
+
 .time-row .value {
   margin-left: 8px;
   font-weight: 500;
 }
+
 .duration {
   font-size: 12px;
-  color: #909399;
+  /* ✅ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
   margin-top: 4px;
 }
+
 .right-section {
   flex: 0.5;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .action-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
+
 .countdown {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 14px;
-  color: #e6a23c;
+  /* ✅ 修改：警告色 (橙黄色) */
+  color: var(--el-color-warning);
   font-weight: bold;
   display: flex;
   align-items: center;
   gap: 4px;
   margin-top: 4px;
 }
+
 .pagination-bar {
   margin-top: 20px;
   display: flex;

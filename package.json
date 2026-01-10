@@ -22,6 +22,7 @@
     "@bytemd/plugin-math": "^1.22.0",
     "@bytemd/vue-next": "^1.22.0",
     "@element-plus/icons-vue": "^2.3.2",
+    "@vueuse/core": "^14.1.0",
     "axios": "^1.13.2",
     "bytemd": "^1.22.0",
     "dayjs": "^1.11.19",

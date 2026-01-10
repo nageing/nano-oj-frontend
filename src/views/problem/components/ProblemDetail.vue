@@ -181,109 +181,111 @@ const copyText = async (text: string) => {
 </script>
 
 <style scoped>
-.problem-detail {
-  height: 100%;
-  padding: 24px;
-  box-sizing: border-box;
+/* ✅ 新增：最外层容器 padding，解决“贴边”问题 */
+.problem-detail-container {
+  padding: 24px; /* 给四周留出呼吸空间 */
 }
+
 .skeleton-padding {
   padding: 20px;
 }
 .problem-header-card {
   margin-bottom: 24px;
 }
+
+/* ✅ 修复标题颜色：适配暗黑模式 */
 .title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 16px;
-  line-height: 1.4;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 12px;
 }
+
 .tags-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
 }
+
 .limit-box {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: #606266;
-  background: #f4f4f5;
-  padding: 4px 8px;
+  color: var(--el-text-color-regular);
+  /* ✅ 修复背景：使用语义化填充色 */
+  background: var(--el-fill-color);
+  padding: 4px 10px;
   border-radius: 4px;
 }
+
+/* ✅ 修复小标题颜色 */
 .section-title {
-  font-size: 16px;
+  font-size: 16px; /* 稍微加大一点，区分度更好 */
   font-weight: 600;
-  color: #303133;
-  margin: 32px 0 16px;
+  color: var(--el-text-color-primary);
+  margin: 32px 0 16px; /* 增加上下间距 */
   display: flex;
   align-items: center;
   gap: 8px;
-  border-left: 4px solid #409eff;
-  padding-left: 10px;
 }
+
 .sub-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-weight: normal;
   margin-left: 8px;
 }
+
+/* ✅ 修复 Markdown 内容颜色 */
 .markdown-body-wrapper {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #262626;
+  font-size: 15px; /* 正文稍微大一点点，阅读更舒适 */
+  line-height: 1.8; /* 增加行高 */
+  color: var(--el-text-color-primary);
 }
-:deep(.markdown-body) {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-}
-:deep(.markdown-body p) {
+/* 如果 Markdown 内部有 p 标签，也强制变色 */
+.markdown-body-wrapper :deep(p) {
+  color: var(--el-text-color-primary);
   margin-bottom: 16px;
 }
-:deep(.markdown-body pre) {
-  background-color: #f6f8fa;
-  border-radius: 6px;
-  padding: 16px;
+/* 修复 Markdown 内部代码块的背景 */
+.markdown-body-wrapper :deep(pre),
+.markdown-body-wrapper :deep(code) {
+  color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color);
+  border-radius: 4px;
+  font-family: Consolas, monospace;
 }
-:deep(.markdown-body img) {
-  max-width: 600px;
-  max-height: 400px;
-  width: auto;
-  height: auto;
-  display: block;
-  margin: 16px auto;
-  border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f0f0f0;
-}
+
 .examples-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 20px; /* 增加样例间的距离 */
 }
+
 .example-card {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color);
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s;
-  background-color: #fff;
 }
+
 .example-card:hover {
-  border-color: #c0c4cc;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--el-border-color-darker);
+  box-shadow: var(--el-box-shadow-light);
 }
+
 .example-header {
-  height: 36px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #dcdfe6;
+  height: 36px; /* 稍微增高 */
+  /* ✅ 修复表头背景 */
+  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 16px; /* 增加内部左右间距 */
   justify-content: space-between;
 }
+
 .dot-group {
   display: flex;
   gap: 6px;
@@ -306,45 +308,49 @@ const copyText = async (text: string) => {
 .ex-title {
   font-size: 13px;
   font-weight: 600;
-  color: #606266;
-  margin-left: 12px;
+  color: var(--el-text-color-regular);
+  margin-left: 10px;
 }
+
 .copy-btn {
   cursor: pointer;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   transition: color 0.2s;
-  font-size: 16px;
 }
 .copy-btn:hover {
-  color: #409eff;
+  color: var(--el-color-primary);
 }
+
 .example-body {
-  padding: 16px;
+  padding: 16px; /* 增加内容内边距 */
+  background: var(--el-bg-color);
 }
+
 .io-group {
   margin-bottom: 12px;
 }
 .io-group:last-child {
   margin-bottom: 0;
 }
+
 .io-label {
-  font-size: 12px;
-  color: #909399;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
   margin-bottom: 6px;
   display: block;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
+
 .io-content {
-  background: #fafafa;
-  padding: 10px 14px;
-  border-radius: 4px;
-  font-family: Consolas, Monaco, monospace;
+  /* ✅ 重点修复：输入输出块的背景和文字 */
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
+  padding: 12px;
+  border-radius: 6px;
+  font-family: Consolas, monospace;
   font-size: 14px;
-  color: #303133;
-  border: 1px solid #ebeef5;
+  line-height: 1.5;
+  border: 1px solid var(--el-border-color-lighter);
   white-space: pre-wrap;
-  word-break: break-all;
 }
 </style>

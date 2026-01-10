@@ -5,7 +5,7 @@
       v-loading="submissionLoading"
       height="100%"
       style="width: 100%; flex: 1;"
-      :header-cell-style="{background:'#f9fafc', color:'#606266', fontWeight:'600'}"
+      :header-cell-style="{fontWeight:'600'}"
     >
       <el-table-column label="状态" width="170" align="center">
         <template #default="{ row }">

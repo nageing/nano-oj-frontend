@@ -145,7 +145,7 @@ onMounted(() => {
 <style scoped>
 .tag-manage-view {
   padding: 20px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 8px;
 }
 </style>

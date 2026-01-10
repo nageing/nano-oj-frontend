@@ -335,16 +335,22 @@ const handlePasswordSubmit = async () => {
   border-radius: 12px;
   overflow: hidden;
   min-height: 500px;
+  /* ✅ 新增：确保卡片有背景色 (适配暗黑模式) */
+  background-color: var(--el-bg-color-overlay);
+  /* ✅ 新增：添加淡边框，提升层次感 */
+  border: 1px solid var(--el-border-color-light);
 }
 
 .user-tabs :deep(.el-tabs__nav-wrap::after) {
   height: 1px;
-  background-color: #f0f0f0;
+  /* ✅ 修改：Tab 分割线颜色 */
+  background-color: var(--el-border-color-light);
 }
 
 .user-tabs :deep(.el-tabs__item) {
   font-size: 16px;
   height: 50px;
+  /* Element Plus 会自动处理 Tabs 文字颜色 (primary/regular)，无需手动覆盖 */
 }
 
 /* 基本信息布局 */
@@ -368,8 +374,10 @@ const handlePasswordSubmit = async () => {
   height: 120px;
   cursor: pointer;
   border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  /* ✅ 修改：边框颜色跟随背景色，形成"镂空"视觉 */
+  border: 4px solid var(--el-bg-color-overlay);
+  /* ✅ 修改：使用语义化阴影 */
+  box-shadow: var(--el-box-shadow-light);
   overflow: hidden;
 }
 
@@ -379,12 +387,13 @@ const handlePasswordSubmit = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* 遮罩层保持半透明黑即可 */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: #fff;
+  /* ✅ 修改：遮罩上的文字始终为白色 */
+  color: var(--el-color-white);
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -396,7 +405,8 @@ const handlePasswordSubmit = async () => {
 .avatar-tip {
   margin-top: 16px;
   font-size: 12px;
-  color: #909399;
+  /* ✅ 修改：次要文字颜色 */
+  color: var(--el-text-color-secondary);
   text-align: center;
 }
 

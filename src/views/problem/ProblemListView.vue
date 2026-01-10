@@ -127,7 +127,7 @@ const customColors = [
 
 // ✅ 核心修复：解析标签数据
 // 它可以处理后端返回的 JSON 字符串，也可以处理已经是数组的情况
-const parseTags = (tags: any) => {
+const parseTags = (tags: TagVO | TagVO[] | string) => {
   if (!tags) return []
   // 如果已经是数组，直接返回
   if (Array.isArray(tags)) {
@@ -137,6 +137,7 @@ const parseTags = (tags: any) => {
   if (typeof tags === 'string') {
     try {
       return JSON.parse(tags)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // 解析失败但不是空串，当做单个标签处理
       return tags.trim() ? [tags] : []
@@ -146,14 +147,14 @@ const parseTags = (tags: any) => {
 }
 
 // 辅助：获取标签名称
-const getTagName = (tag: any) => {
+const getTagName = (tag: TagVO | string) => {
   if (typeof tag === 'string') return tag
   if (tag && typeof tag === 'object') return tag.name
   return String(tag)
 }
 
 // 辅助：获取标签颜色
-const getTagColor = (tag: any) => {
+const getTagColor = (tag: TagVO | string) => {
   // 1. 如果标签对象自带颜色，优先使用
   if (typeof tag === 'object' && tag.color) {
     return tag.color
@@ -189,6 +190,7 @@ const loadData = async () => {
     } else {
       ElMessage.error('加载失败: ' + res.message)
     }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('加载失败，请检查网络')
   } finally {
@@ -215,7 +217,10 @@ onMounted(() => {
 .table-card {
   border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  /* ✅ 修改：使用 Element 标准阴影变量 */
+  box-shadow: var(--el-box-shadow-light);
+  /* ✅ 新增：显式指定背景色，防止暗黑模式下透明 */
+  background-color: var(--el-bg-color-overlay);
 }
 
 .table-header {
@@ -223,13 +228,15 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  /* ✅ 修改：使用语义化边框颜色 */
+  border-bottom: 1px solid var(--el-border-color-lighter);
   margin-bottom: 10px;
 }
 
 .page-title {
   margin: 0;
-  color: #333;
+  /* ✅ 修改：一级文字颜色 */
+  color: var(--el-text-color-primary);
   font-size: 18px;
   display: flex;
   align-items: center;
@@ -240,21 +247,27 @@ onMounted(() => {
 }
 
 .custom-search-input :deep(.el-input-group__append) {
-  background-color: #fff;
+  /* ✅ 修改：背景色跟随主题 */
+  background-color: var(--el-fill-color-blank);
   padding: 0 15px;
+  /* 确保边框颜色也适配 (可选) */
+  box-shadow: none;
 }
 .custom-search-input :deep(.el-input-group__append:hover) {
-  color: #409EFF;
+  /* ✅ 修改：主色调 */
+  color: var(--el-color-primary);
 }
 
 .problem-title-text {
   font-weight: 500;
   font-size: 15px;
-  color: #333;
+  /* ✅ 修改：文字颜色 */
+  color: var(--el-text-color-primary);
   transition: color 0.2s;
 }
 .problem-title-text:hover {
-  color: #409EFF;
+  /* ✅ 修改：主色调 */
+  color: var(--el-color-primary);
   text-decoration: underline;
 }
 
