@@ -1,7 +1,7 @@
 <template>
   <div class="configure-problem">
     <el-alert
-      title="📝 提示：您可以修改“展示标题”对题目进行重命名，或调整题目顺序。"
+      title="📝 提示：您可以修改“展示标题”对题目进行重命名，调整题目顺序，或设置IOI或OI赛制分值。"
       type="info"
       :closable="false"
       show-icon
@@ -17,19 +17,31 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="title" label="原始标题" min-width="200" show-overflow-tooltip>
+      <el-table-column prop="title" label="原始标题" min-width="180" show-overflow-tooltip>
         <template #default="{ row }">
           <span style="color: #909399">{{ row.title }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="展示标题 (可重命名)" min-width="250">
+      <el-table-column label="展示标题 (可重命名)" min-width="200">
         <template #default="{ row }">
           <el-input v-model="row.displayTitle" placeholder="自定义比赛题目名称" />
         </template>
       </el-table-column>
 
-      <el-table-column label="排序与操作" width="200" align="center">
+      <el-table-column v-if="form.type === 1" label="分值" width="140" align="center">
+        <template #default="{ row }">
+          <el-input-number
+            v-model="row.score"
+            :min="0"
+            :max="1000"
+            size="small"
+            controls-position="right"
+            style="width: 100%"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="排序与操作" width="180" align="center">
         <template #default="{ $index }">
           <el-button-group>
             <el-button size="small" :icon="Top" @click="moveUp($index)" :disabled="$index === 0" />
@@ -61,10 +73,11 @@ import { ElMessage } from 'element-plus'
 import { Top, Bottom, Delete } from '@element-plus/icons-vue'
 
 const form = defineModel<ContestAddRequest>('form', { required: true })
-const emit = defineEmits(['prev', 'next']) // ✅ 监听 next
+const emit = defineEmits(['prev', 'next'])
 
 const moveUp = (index: number) => {
   if (index > 0) {
+    // 数组解构交换，注意 TypeScript 的非空断言 !
     ;[form.value.problems[index], form.value.problems[index - 1]] = [
       form.value.problems[index - 1]!,
       form.value.problems[index]!,
@@ -90,7 +103,15 @@ const handleNext = () => {
     ElMessage.warning('请至少选择一道题目')
     return
   }
-  emit('next') // ✅ 触发下一步
+  // 简单校验一下分数防止为空
+  if (form.value.type === 1) {
+    const hasInvalidScore = form.value.problems.some(p => p.score === undefined || p.score === null)
+    if (hasInvalidScore) {
+       ElMessage.warning('请检查是否有题目未设置分值')
+       return
+    }
+  }
+  emit('next')
 }
 </script>
 

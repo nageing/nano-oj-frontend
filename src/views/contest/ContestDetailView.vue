@@ -33,7 +33,7 @@
             </h1>
             <div class="meta-data">
               <el-tag :type="contest.type === 0 ? 'primary' : 'warning'" effect="dark">
-                {{ contest.type === 0 ? 'ACM赛制' : 'OI赛制' }}
+                {{ contest.type === 0 ? 'ACM赛制' : 'IOI赛制' }}
               </el-tag>
               <el-tag :type="getStatusType(curStatus)" effect="plain">
                 {{ getStatusText(curStatus) }}
@@ -67,11 +67,7 @@
                 </el-popconfirm>
               </div>
               <div v-else>
-                <el-button
-                  type="primary"
-                  size="large"
-                  @click="handleApplyBtn"
-                >
+                <el-button type="primary" size="large" @click="handleApplyBtn">
                   立即报名
                 </el-button>
               </div>
@@ -250,7 +246,8 @@
                     <span
                       class="oi-status"
                       :class="{
-                        'full-mark': row.submissionInfo[problem.id].score === 100,
+                        'full-mark':
+                          row.submissionInfo[problem.id].score === (problem.score || 100),
                         'zero-mark': row.submissionInfo[problem.id].score === 0,
                       }"
                     >

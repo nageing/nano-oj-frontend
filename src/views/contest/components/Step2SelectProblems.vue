@@ -90,12 +90,12 @@
               <span>✅ 已选题目 ({{ form.problems.length }})</span>
               <div class="header-right">
                 <el-tag
-                  v-if="form.type === 1"
+                  v-if="form.type !== 0"
                   type="warning"
                   size="small"
                   style="margin-right: 10px"
                 >
-                  OI赛制可设置分数
+                  IOI和OI赛制可设置分数
                 </el-tag>
                 <el-button
                   type="danger"
@@ -163,7 +163,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Plus, Delete } from '@element-plus/icons-vue'
 import { TagVO } from '@/api/problem'
 
-// form 里面应该包含了 type (0=ACM, 1=OI)
+// form 里面应该包含了 type (0=ACM, 1=IOI)
 const form = defineModel<ContestAddRequest>('form', { required: true })
 const emit = defineEmits(['prev', 'next'])
 
@@ -182,6 +182,7 @@ const parseTags = (tags: TagVO) => {
   if (typeof tags === 'string') {
     try {
       return JSON.parse(tags)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       return []
     }
@@ -224,7 +225,7 @@ const addProblem = (problem: ProblemVO) => {
     id: problem.id,
     title: problem.title,
     displayTitle: problem.title,
-    // ✅ 新增：初始化 score，OI 赛制默认为 100，ACM 赛制这个字段会被忽略
+    // ✅ 新增：初始化 score，IOI 赛制默认为 100，ACM 赛制这个字段会被忽略
     score: 100
   })
 }

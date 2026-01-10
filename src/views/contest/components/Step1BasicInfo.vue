@@ -57,7 +57,7 @@
             :disabled="props.isUpdate && props.contestStatus !== 0"
           >
             <el-radio-button :value="0">ACM 赛制</el-radio-button>
-            <el-radio-button :value="1">OI 赛制</el-radio-button>
+            <el-radio-button :value="1">IOI 赛制</el-radio-button>
           </el-radio-group>
 
           <div v-if="props.isUpdate && props.contestStatus !== 0" class="disabled-tip">

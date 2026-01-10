@@ -32,6 +32,7 @@ export interface ContestProblemItem {
   id: number
   displayTitle?: string
   title?: string
+  score?: number
 }
 
 /**

@@ -138,6 +138,7 @@ const loadContestData = async (id: number) => {
           id: p.id,
           title: p.title,
           displayTitle: p.displayTitle || p.title,
+          score: p.score ?? (form.type === 0 ? 100 : undefined) //初始化分数
         }))
       }
     } else {

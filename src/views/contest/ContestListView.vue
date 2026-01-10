@@ -65,7 +65,7 @@
                 <h3 class="title">
                   {{ contest.title }}
                   <el-tag
-                    v-if="contest.needsPassword"
+                    v-if="contest.hasPwd"
                     type="danger"
                     size="small"
                     effect="dark"
@@ -80,7 +80,7 @@
                     size="small"
                     effect="plain"
                   >
-                    {{ contest.type === 0 ? 'ACM赛制' : 'OI赛制' }}
+                    {{ contest.type === 0 ? 'ACM赛制' : 'IOI赛制' }}
                   </el-tag>
                   <el-tag
                     :type="getStatusType(getContestStatus(contest))"
