@@ -64,15 +64,30 @@
               <div class="info">
                 <h3 class="title">
                   {{ contest.title }}
-                  <el-tag
+                  <el-tooltip
                     v-if="contest.hasPwd"
-                    type="danger"
-                    size="small"
-                    effect="dark"
-                    round
+                    content="这是一个私有比赛，需要密码才能报名"
+                    placement="top"
                   >
-                    <el-icon><Lock /></el-icon> 私有
-                  </el-tag>
+                    <el-tag
+                      type="warning"
+                      effect="dark"
+                      round
+                      size="small"
+                      style="
+                        margin-left: 8px;
+                        width: 28px;
+                        height: 28px;
+                        padding: 0;
+                        display: inline-flex;
+                        justify-content: center;
+                        align-items: center;
+                        border: none;
+                      "
+                    >
+                      <el-icon style="font-size: 16px"><Lock /></el-icon>
+                    </el-tag>
+                  </el-tooltip>
                 </h3>
                 <div class="tags">
                   <el-tag
@@ -80,7 +95,7 @@
                     size="small"
                     effect="plain"
                   >
-                    {{ contest.type === 0 ? 'ACM赛制' : 'IOI赛制' }}
+                    {{ contest.type === 0 ? 'ACM赛制' : contest.type === 1 ? 'IOI赛制' : 'OI赛制' }}
                   </el-tag>
                   <el-tag
                     :type="getStatusType(getContestStatus(contest))"
@@ -110,24 +125,13 @@
 
             <div class="right-section">
               <div class="action-wrapper">
-
-                <div v-if="checkAdmin()" style="margin-bottom: 8px; display: flex; gap: 8px;">
-                   <el-button
-                     type="primary"
-                     link
-                     size="small"
-                     @click.stop="toUpdate(contest.id)"
-                   >
-                     修改
-                   </el-button>
-                   <el-button
-                     type="danger"
-                     link
-                     size="small"
-                     @click.stop="handleDelete(contest)"
-                   >
-                     删除
-                   </el-button>
+                <div v-if="checkAdmin()" style="margin-bottom: 8px; display: flex; gap: 8px">
+                  <el-button type="primary" link size="small" @click.stop="toUpdate(contest.id)">
+                    修改
+                  </el-button>
+                  <el-button type="danger" link size="small" @click.stop="handleDelete(contest)">
+                    删除
+                  </el-button>
                 </div>
 
                 <el-button

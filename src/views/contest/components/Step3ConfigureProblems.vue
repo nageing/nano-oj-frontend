@@ -29,7 +29,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column v-if="form.type === 1" label="分值" width="140" align="center">
+      <el-table-column v-if="form.type !== 0" label="分值" width="140" align="center">
         <template #default="{ row }">
           <el-input-number
             v-model="row.score"

@@ -19,7 +19,7 @@
         <el-table-column prop="displayTitle" label="展示标题" />
 
         <el-table-column
-          v-if="form.type === 1"
+          v-if="form.type !== 0"
           prop="score"
           label="分值"
           width="100"

@@ -122,7 +122,7 @@
                 <span class="index-badge">{{ index + 1 }}</span>
                 <span class="item-text">{{ item.title }}</span>
 
-                <div v-if="form.type === 1" class="score-input-box">
+                <div v-if="form.type !== 0" class="score-input-box">
                   <span class="score-label">分值</span>
                   <el-input-number
                     v-model="item.score"

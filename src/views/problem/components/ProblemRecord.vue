@@ -7,7 +7,7 @@
       style="width: 100%; flex: 1;"
       :header-cell-style="{background:'#f9fafc', color:'#606266', fontWeight:'600'}"
     >
-      <el-table-column label="状态" width="120" align="center">
+      <el-table-column label="状态" width="170" align="center">
         <template #default="{ row }">
            <el-tag v-if="row.status === 3" type="danger" size="small" effect="dark" round>判题失败</el-tag>
            <el-tag v-else-if="row.status !== 2" type="warning" size="small" effect="dark" round loading>判题中</el-tag>

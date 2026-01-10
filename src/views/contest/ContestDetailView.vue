@@ -32,8 +32,8 @@
               </el-tooltip>
             </h1>
             <div class="meta-data">
-              <el-tag :type="contest.type === 0 ? 'primary' : 'warning'" effect="dark">
-                {{ contest.type === 0 ? 'ACM赛制' : 'IOI赛制' }}
+              <el-tag :type="getContestTypeColor(contest.type)" effect="dark">
+                {{ getContestTypeName(contest.type) }}
               </el-tag>
               <el-tag :type="getStatusType(curStatus)" effect="plain">
                 {{ getStatusText(curStatus) }}
@@ -112,12 +112,27 @@
             >
               <el-table-column label="状态" width="80" align="center">
                 <template #default="{ row }">
-                  <el-icon v-if="row.userStatus === 1" color="#67C23A" size="18"
-                    ><CircleCheckFilled
-                  /></el-icon>
-                  <el-icon v-else-if="row.userStatus === 2" color="#F56C6C" size="18"
-                    ><CircleCloseFilled
-                  /></el-icon>
+                  <span v-if="!row.userStatus || row.userStatus === 0"></span>
+
+                  <el-tooltip v-else-if="isOiRunning" content="已提交 (等待结果)" placement="top">
+                    <el-icon color="#E6A23C" size="18"><QuestionFilled /></el-icon>
+                  </el-tooltip>
+
+                  <div v-else>
+                    <el-tooltip content="已解答" placement="top" v-if="row.userStatus === 1">
+                      <el-icon color="#67C23A" size="18"><CircleCheckFilled /></el-icon>
+                    </el-tooltip>
+                    <el-tooltip content="尝试过" placement="top" v-else-if="row.userStatus === 2">
+                      <el-icon color="#F56C6C" size="18"><CircleCloseFilled /></el-icon>
+                    </el-tooltip>
+                    <el-tooltip
+                      content="已提交 (等待结果)"
+                      placement="top"
+                      v-else-if="row.userStatus === 10"
+                    >
+                      <el-icon color="#E6A23C" size="18"><QuestionFilled /></el-icon>
+                    </el-tooltip>
+                  </div>
                 </template>
               </el-table-column>
               <el-table-column prop="displayId" label="题号" width="80" align="center">
@@ -125,10 +140,12 @@
                   ><span class="problem-id">{{ String.fromCharCode(65 + $index) }}</span></template
                 >
               </el-table-column>
-              <el-table-column prop="title" label="题目名称">
-                <template #default="{ row }"
-                  ><span class="problem-title">{{ row.title }}</span></template
-                >
+              <el-table-column label="题目名称" min-width="200">
+                <template #default="{ row }">
+                  <span class="problem-title">
+                    {{ row.displayTitle ? row.displayTitle : row.title }}
+                  </span>
+                </template>
               </el-table-column>
               <el-table-column label="操作" width="120" align="right">
                 <template #default><el-button type="primary" link>去提交</el-button></template>
@@ -144,7 +161,16 @@
               /></el-icon>
             </template>
 
+            <div v-if="isOiSealed" class="seal-rank-tip">
+              <el-empty description="OI 赛制比赛进行中，排行榜已隐藏" :image-size="120">
+                <template #extra>
+                  <p style="color: #909399; font-size: 13px">比赛结束后将自动公布排名</p>
+                </template>
+              </el-empty>
+            </div>
+
             <el-table
+              v-else
               :data="rankList"
               style="width: 100%"
               v-loading="rankLoading"
@@ -194,7 +220,7 @@
               </el-table-column>
 
               <el-table-column
-                v-if="contest.type === 1"
+                v-if="contest.type === 1 || contest.type === 2"
                 label="Total Score"
                 width="120"
                 align="center"
@@ -240,7 +266,9 @@
                   </div>
 
                   <div
-                    v-if="contest.type === 1 && row.submissionInfo?.[problem.id]"
+                    v-if="
+                      (contest.type === 1 || contest.type === 2) && row.submissionInfo?.[problem.id]
+                    "
                     class="cell-wrapper"
                   >
                     <span
@@ -258,7 +286,7 @@
               </el-table-column>
             </el-table>
 
-            <div class="pagination-box">
+            <div class="pagination-box" v-if="!isOiSealed">
               <el-pagination
                 v-model:current-page="rankParams.current"
                 v-model:page-size="rankParams.size"
@@ -290,7 +318,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, reactive } from 'vue' // 删掉 watch
+import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -300,7 +328,8 @@ import {
   ArrowRight,
   CircleCloseFilled,
   Refresh,
-} from '@element-plus/icons-vue' // 引入 Refresh 图标
+  QuestionFilled, // ✅ 引入新图标
+} from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import {
@@ -313,7 +342,6 @@ import {
 
 dayjs.extend(duration)
 
-// ... (变量定义与之前相同) ...
 const router = useRouter()
 const route = useRoute()
 const contestId = route.params.id as string
@@ -335,7 +363,7 @@ const rankList = ref<any[]>([])
 const rankTotal = ref(0)
 const rankParams = reactive({ current: 1, size: 50 })
 
-// ... (API 方法与之前相同) ...
+// 计算属性
 const curStatus = computed<0 | 1 | 2>(() => {
   if (!contest.value) return 0
   const start = dayjs(contest.value.startTime)
@@ -363,6 +391,29 @@ const canViewProblems = computed(() => {
   if (curStatus.value === 2) return true
   return hasJoined.value && curStatus.value !== 0
 })
+
+// ✅ 计算属性: 是否处于 OI 封榜状态
+// 条件: 赛制为OI(2) && 比赛进行中(1) && 列表为空(后端返回空)
+// 注意：如果当前用户是管理员，后端会返回数据，rankTotal > 0，这里就不会显示封榜提示
+const isOiSealed = computed(() => {
+  return contest.value?.type === 2 && curStatus.value === 1 && rankTotal.value === 0
+})
+
+// ✅ 辅助函数：赛制名称
+const getContestTypeName = (type: number) => {
+  if (type === 0) return 'ACM赛制'
+  if (type === 1) return 'IOI赛制'
+  if (type === 2) return 'OI赛制'
+  return '未知赛制'
+}
+
+// ✅ 辅助函数：赛制标签颜色
+const getContestTypeColor = (type: number) => {
+  if (type === 0) return 'primary' // 蓝
+  if (type === 1) return 'warning' // 橙
+  if (type === 2) return 'success' // 绿
+  return 'info'
+}
 
 const loadData = async () => {
   try {
@@ -413,19 +464,14 @@ const handleCancel = async () => {
   }
 }
 
-// ... (排行榜逻辑修改) ...
-
 const handleTabChange = (name: string) => {
-  if (name === 'rank') loadRankData(false) // 手动切 Tab 时显示 Loading
+  if (name === 'rank') loadRankData(false)
 }
 
-// ✅ 修改 loadRankData，增加参数控制是否显示 loading
 const loadRankData = async (isBackground = true) => {
-  // 如果是后台自动刷新，就不显示 table 的 loading 遮罩，体验更好
   if (!isBackground) {
     rankLoading.value = true
   }
-
   try {
     const res = await getContestRankUsingPost({
       contestId: Number(contestId),
@@ -443,7 +489,6 @@ const loadRankData = async (isBackground = true) => {
   }
 }
 
-// ... (格式化函数不变) ...
 const formatSeconds = (sec: number, simple = false) => {
   if (sec === undefined || sec === null) return '--'
   if (simple) {
@@ -474,11 +519,9 @@ onMounted(() => {
     now.value = dayjs()
   }, 1000)
 
-  // ✅ 开启自动刷新 (10s)
   refreshTimer.value = window.setInterval(() => {
-    // 只有在 rank tab 页才刷新
     if (activeTab.value === 'rank') {
-      loadRankData(true) // true = 后台静默刷新
+      loadRankData(true)
     }
   }, 10000)
 })
@@ -487,10 +530,14 @@ onUnmounted(() => {
   if (timer.value) clearInterval(timer.value)
   if (refreshTimer.value) clearInterval(refreshTimer.value)
 })
+
+const isOiRunning = computed(() => {
+  return contest.value?.type === 2 && curStatus.value === 1
+})
 </script>
 
 <style scoped>
-/* 样式与之前基本一致，去掉了 rank-toolbar 相关的样式 */
+/* 样式保持不变，新增 seal-rank-tip */
 #contestDetailView {
   max-width: 1280px;
   margin: 20px auto;
@@ -510,9 +557,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.pwd-tag {
-  margin-left: 8px;
 }
 .meta-data {
   display: flex;
@@ -702,5 +746,9 @@ onUnmounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+/* 新增封榜提示样式 */
+.seal-rank-tip {
+  padding: 60px 0;
 }
 </style>
