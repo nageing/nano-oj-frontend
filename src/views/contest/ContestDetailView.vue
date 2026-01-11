@@ -147,6 +147,24 @@
                   </span>
                 </template>
               </el-table-column>
+              <el-table-column label="通过率" width="220" align="center">
+                <template #default="{ row }">
+                  <div class="progress-wrapper">
+                    <el-progress
+                      :percentage="
+                        row.submitNum && row.submitNum > 0
+                          ? Math.round((row.acceptedNum / row.submitNum) * 100)
+                          : 0
+                      "
+                      :color="customColors"
+                      :stroke-width="6"
+                      :format="
+                        (percent: number) => `${percent}% (${row.acceptedNum || 0}/${row.submitNum || 0})`
+                      "
+                    />
+                  </div>
+                </template>
+              </el-table-column>
               <el-table-column label="操作" width="120" align="right">
                 <template #default><el-button type="primary" link>去提交</el-button></template>
               </el-table-column>
@@ -361,6 +379,12 @@ const refreshTimer = ref<number | null>(null)
 const rankList = ref<any[]>([])
 const rankTotal = ref(0)
 const rankParams = reactive({ current: 1, size: 50 })
+// ✅ 新增：进度条颜色配置
+const customColors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 50 },
+  { color: '#67c23a', percentage: 100 },
+]
 
 // 计算属性
 const curStatus = computed<0 | 1 | 2>(() => {
@@ -444,7 +468,7 @@ const handleApplyBtn = () => {
 const confirmApply = async () => {
   const res = await applyContestUsingPost({
     contestId: Number(contestId),
-    password: applyPassword.value,
+    pwd: applyPassword.value,
   })
   if (Number(res.code) === 0) {
     ElMessage.success('报名成功')
@@ -759,5 +783,18 @@ const isOiRunning = computed(() => {
 /* 新增封榜提示样式 */
 .seal-rank-tip {
   padding: 60px 0;
+}
+
+/* ✅ 新增：进度条样式微调 */
+.progress-wrapper {
+  width: 95%; /* 稍微宽一点，适配比赛页面的布局 */
+  margin: 0 auto;
+}
+
+:deep(.el-progress__text) {
+  font-size: 12px !important;
+  color: var(--el-text-color-secondary);
+  min-width: 85px; /* 预留足够宽度给 "100% (100/100)" */
+  text-align: left;
 }
 </style>

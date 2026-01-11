@@ -39,7 +39,7 @@ export interface UserVO {
   id: number
   userName: string
   userAvatar: string
-  userProfile?: string // ✨ 补上简介
+  userProfile?: string
   userRole?: string
 }
 
@@ -53,13 +53,23 @@ export interface PostVO {
   thumbNum: number
   favourNum: number
   userId: number
-  questionId?: number // ✨ 补上关联题目ID
+  questionId?: number
   createTime: string
   updateTime: string
   tagList: string[]
-  user?: UserVO // ✨ 使用完整的 UserVO 类型
+  user?: UserVO
   hasThumb: boolean
   hasFavour: boolean
+}
+
+/**
+ * 更新帖子请求参数
+ */
+export interface PostUpdateRequest {
+  id: number
+  title?: string
+  content?: string
+  tags?: string[]
 }
 
 /**
@@ -95,16 +105,6 @@ export function getPostVoByIdUsingGet(id: number) {
       id,
     },
   }) as unknown as Promise<BaseResponse<PostVO>>
-}
-
-/**
- * 更新帖子请求参数
- */
-export interface PostUpdateRequest {
-  id: number
-  title?: string
-  content?: string
-  tags?: string[]
 }
 
 /**

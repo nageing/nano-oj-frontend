@@ -4,8 +4,8 @@
       <el-descriptions-item label="比赛标题">{{ form.title }}</el-descriptions-item>
       <el-descriptions-item label="赛制">{{ form.type === 1 ? 'IOI赛制' : (form.type === 0 ? 'ACM赛制' : 'OI赛制') }}</el-descriptions-item>
       <el-descriptions-item label="权限">
-        <el-tag :type="form.visible === 1 ? 'danger' : 'success'">
-          {{ form.visible === 1 ? '私有 (密码保护)' : '公开' }}
+        <el-tag :type="form.hasPwd ? 'danger' : 'success'">
+          {{ form.hasPwd ? '私有 (密码保护)' : '公开' }}
         </el-tag>
       </el-descriptions-item>
       <el-descriptions-item label="时间">{{ form.startTime }} ~ {{ form.endTime }}</el-descriptions-item>
@@ -42,8 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { type ContestAddRequest } from '@/api/contest'
-const form = defineModel<ContestAddRequest>('form', { required: true })
+import { type ContestAddAndUpdateRequest } from '@/api/contest'
+const form = defineModel<ContestAddAndUpdateRequest>('form', { required: true })
 const { isUpdate } = defineProps<{ isUpdate: boolean }>()
 const emit = defineEmits(['prev', 'submit'])
 </script>

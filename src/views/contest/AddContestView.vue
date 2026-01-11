@@ -62,7 +62,7 @@ import {
   updateContestUsingPost,
   getContestByIdUsingGet,
 } from '@/api/contest'
-import type { ContestAddRequest } from '@/api/contest'
+import type { ContestAddAndUpdateRequest } from '@/api/contest'
 import { ElMessage } from 'element-plus'
 import Step1BasicInfo from './components/Step1BasicInfo.vue'
 import Step2SelectProblems from './components/Step2SelectProblems.vue'
@@ -78,15 +78,15 @@ const updateId = ref<number>(0)
 // ✅ 新增：比赛状态 (0:未开始, 1:进行中, 2:已结束)
 const contestStatus = ref(0)
 
-const form = reactive<ContestAddRequest>({
+const form = reactive<ContestAddAndUpdateRequest>({
   title: '',
   description: '',
   startTime: '',
   endTime: '',
   type: 0,
-  password: '',
-  visible: 0,
+  pwd: '',
   problems: [],
+  hasPwd: false,
 })
 
 onMounted(async () => {
@@ -109,9 +109,9 @@ const loadContestData = async (id: number) => {
       form.startTime = data.startTime || ''
       form.endTime = data.endTime || ''
       form.type = data.type ?? 0
-      form.visible = data.visible ?? 0
-      form.password = data.password || '' // 兼容旧字段名
-
+      form.pwd = data.pwd || '' // 兼容旧字段名
+      form.hasPwd = data.hasPwd || false
+      
       // ✅ 修改点 2：计算比赛状态（防止后端没返回 status 字段）
       const now = new Date().getTime()
       const start = new Date(form.startTime).getTime()

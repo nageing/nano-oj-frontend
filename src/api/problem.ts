@@ -32,6 +32,7 @@ export interface ProblemAddRequest {
   answer?: string
   judgeCase?: JudgeCase[]
   judgeConfig?: JudgeConfig
+  visible?: number
 }
 
 /**
@@ -84,62 +85,10 @@ export interface ProblemVO {
   createTime?: string
   updateTime?: string
   userStatus?: number // 0:未开始, 1:通过, 2:未通过
+  visible?: number // 0 公开，1 私有
 }
 
 // ================= API 接口区域 =================
-
-/**
- * 分页获取题目列表 (用户/管理员通用)
- * 对应后端: POST /problem/list/page
- */
-export const listProblemByPageUsingPost = async (params: ProblemQueryRequest) => {
-  return (await axios.post('/problem/list/page', params)) as unknown as BaseResponse<
-    PageResponse<ProblemVO>
-  >
-}
-
-/**
- * 创建题目
- * 对应后端: POST /problem/add
- */
-export const addProblemUsingPost = async (params: ProblemAddRequest) => {
-  return (await axios.post('/problem/add', params)) as unknown as Promise<BaseResponse<number>>
-}
-
-/**
- * 根据 id 获取题目详情 (做题专用，脱敏版)
- * 对应后端: GET /problem/get/vo
- */
-export const getProblemVOByIdUsingGet = async (id: number) => {
-  return (await axios.get(`/problem/get/vo`, {
-    params: { id },
-  })) as unknown as Promise<BaseResponse<ProblemVO>>
-}
-/**
- * 根据 id 获取题目详情
- * 对应后端: GET /problem/get
- */
-export const getProblemByIdUsingGet = async (id: number) => {
-  return (await axios.get(`/problem/get`, {
-    params: { id },
-  })) as unknown as Promise<BaseResponse<ProblemVO>>
-}
-
-/**
- * 更新题目
- * 对应后端: POST /problem/update
- */
-export const updateProblemUsingPost = async (params: ProblemAddRequest) => {
-  return (await axios.post('/problem/update', params)) as unknown as Promise<BaseResponse<boolean>>
-}
-
-/**
- * 删除题目
- * 对应后端: POST /problem/delete
- */
-export const deleteProblemUsingPost = async (id: number) => {
-  return (await axios.post('/problem/delete', { id })) as unknown as Promise<BaseResponse<boolean>>
-}
 
 export interface ProblemSubmitAddRequest {
   problemId: number
@@ -147,12 +96,12 @@ export interface ProblemSubmitAddRequest {
   code: string
   contestId?: number // ✅ 新增：比赛ID (可选)
 }
+
 /**
  * 提交代码接口
  * 对应后端: POST /problem_submit/
  */
 export const doProblemSubmitUsingPost = async (params: ProblemSubmitAddRequest) => {
-  // 发送 POST 请求到 '/problem_submit/'
   return (await axios.post('/problem_submit/', params)) as unknown as Promise<BaseResponse<number>>
 }
 
@@ -192,6 +141,66 @@ export interface UserVO {
   userRole: string
 }
 
+export interface ProblemRunRequest {
+  code: string,
+  input: string,
+  language: string
+}
+
+/**
+ * 分页获取题目列表 (用户/管理员通用)
+ * 对应后端: POST /problem/list/page
+ */
+export const listProblemByPageUsingPost = async (params: ProblemQueryRequest) => {
+  return (await axios.post('/problem/list/page', params)) as unknown as BaseResponse<
+    PageResponse<ProblemVO>
+  >
+}
+
+/**
+ * 创建题目
+ * 对应后端: POST /problem/add
+ */
+export const addProblemUsingPost = async (params: ProblemAddRequest) => {
+  return (await axios.post('/problem/add', params)) as unknown as Promise<BaseResponse<number>>
+}
+
+/**
+ * 根据 id 获取题目详情 (做题专用，脱敏版)
+ * 对应后端: GET /problem/get/vo
+ */
+export const getProblemVOByIdUsingGet = async (id: number) => {
+  return (await axios.get(`/problem/get/vo`, {
+    params: { id },
+  })) as unknown as Promise<BaseResponse<ProblemVO>>
+}
+
+/**
+ * 根据 id 获取题目详情
+ * 对应后端: GET /problem/get
+ */
+export const getProblemByIdUsingGet = async (id: number) => {
+  return (await axios.get(`/problem/get`, {
+    params: { id },
+  })) as unknown as Promise<BaseResponse<ProblemVO>>
+}
+
+/**
+ * 更新题目
+ * 对应后端: POST /problem/update
+ */
+export const updateProblemUsingPost = async (params: ProblemAddRequest) => {
+  return (await axios.post('/problem/update', params)) as unknown as Promise<BaseResponse<boolean>>
+}
+
+/**
+ * 删除题目
+ * 对应后端: POST /problem/delete
+ */
+export const deleteProblemUsingPost = async (id: number) => {
+  return (await axios.post('/problem/delete', { id })) as unknown as Promise<BaseResponse<boolean>>
+}
+
 /**
  * 分页获取提交记录
  * 对应后端: POST /problem_submit/list/page
@@ -200,23 +209,6 @@ export const listProblemSubmitByPageUsingPost = async (params: ProblemSubmitQuer
   return (await axios.post('/problem_submit/list/page', params)) as unknown as Promise<
     BaseResponse<PageResponse<ProblemSubmitVO>>
   >
-}
-
-export interface ProblemRunRequest {
-  /**
-   * 代码
-   */
-  code: string
-
-  /**
-   * 自测输入
-   */
-  input: string
-
-  /**
-   * 编程语言
-   */
-  language: string
 }
 
 /**
@@ -247,5 +239,5 @@ export interface ContestAddRequest {
   title?: string;
   description?: string;
   // ...
-  problems: ContestProblemItem[]; 
+  problems: ContestProblemItem[];
 }

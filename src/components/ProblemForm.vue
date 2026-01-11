@@ -143,7 +143,7 @@ const loadData = async () => {
     form.title = data.title as string
     form.content = data.content as string
     form.answer = data.answer as string
-
+    form.visible = data.visible as number
     // ✨✨✨ 修改点 6：加载回显逻辑，直接赋值数组
     if (data.tags) {
       if (Array.isArray(data.tags)) {

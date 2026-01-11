@@ -1,19 +1,36 @@
 <template>
   <div id="problemListView">
-
     <el-card shadow="hover" class="table-card">
-
       <div class="table-header">
         <h3 class="page-title">
           <el-icon style="margin-right: 8px; vertical-align: middle"><List /></el-icon>
           题目列表
         </h3>
 
-        <div class="search-box">
+        <div class="filter-wrapper">
+          <el-select
+            v-model="searchParams.tags"
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            placeholder="筛选标签"
+            style="width: 240px"
+            clearable
+            @change="loadData"
+          >
+            <el-option v-for="tag in tagList" :key="tag.id" :label="tag.name" :value="tag.name">
+              <div class="tag-option-item">
+                <span class="tag-dot" :style="{ backgroundColor: tag.color || '#409EFF' }"></span>
+                {{ tag.name }}
+              </div>
+            </el-option>
+          </el-select>
+
           <el-input
             v-model="searchParams.title"
-            placeholder="搜索题目..."
+            placeholder="搜索题目名称..."
             class="custom-search-input"
+            style="width: 260px"
             @keyup.enter="loadData"
             clearable
             @clear="loadData"
@@ -25,10 +42,19 @@
         </div>
       </div>
 
-      <el-table :data="dataList" stripe style="width: 100%; margin-top: 10px" v-loading="loading" size="large">
+      <el-table
+        :data="dataList"
+        stripe
+        style="width: 100%; margin-top: 10px"
+        v-loading="loading"
+        size="large"
+      >
         <el-table-column prop="title" label="题目名称" min-width="250">
           <template #default="{ row }">
-            <div style="display: flex; align-items: center; cursor: pointer" @click="toProblemPage(row)">
+            <div
+              style="display: flex; align-items: center; cursor: pointer"
+              @click="toProblemPage(row)"
+            >
               <el-icon color="#409EFF" style="margin-right: 8px"><Document /></el-icon>
               <span class="problem-title-text">{{ row.title }}</span>
             </div>
@@ -44,7 +70,7 @@
                 :color="getTagColor(tag)"
                 effect="dark"
                 size="small"
-                style="margin-right: 6px; border: none;"
+                style="margin-right: 6px; border: none"
                 round
               >
                 {{ getTagName(tag) }}
@@ -52,14 +78,21 @@
             </div>
           </template>
         </el-table-column>
-
-        <el-table-column label="通过率" width="200" align="center">
+        <el-table-column label="通过率" width="220" align="center">
           <template #default="{ row }">
             <div class="progress-wrapper">
               <el-progress
-                :percentage="row.submitNum > 0 ? Number(((row.acceptedNum / row.submitNum) * 100).toFixed(0)) : 0"
+                :percentage="
+                  row.submitNum && row.submitNum > 0
+                    ? Math.round((row.acceptedNum / row.submitNum) * 100)
+                    : 0
+                "
                 :color="customColors"
                 :stroke-width="8"
+                :format="
+                  (percent: number) =>
+                    `${percent}% (${row.acceptedNum || 0}/${row.submitNum || 0})`
+                "
               />
             </div>
           </template>
@@ -117,6 +150,7 @@ const searchParams = reactive<ProblemQueryRequest>({
   current: 1,
   pageSize: 10,
   title: '',
+  tags: [],
 })
 
 const customColors = [
@@ -137,7 +171,7 @@ const parseTags = (tags: TagVO | TagVO[] | string) => {
   if (typeof tags === 'string') {
     try {
       return JSON.parse(tags)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // 解析失败但不是空串，当做单个标签处理
       return tags.trim() ? [tags] : []
@@ -176,7 +210,7 @@ const loadTags = async () => {
       tagList.value = res.data
     }
   } catch (e) {
-    console.error("加载标签失败", e)
+    console.error('加载标签失败', e)
   }
 }
 
@@ -190,7 +224,7 @@ const loadData = async () => {
     } else {
       ElMessage.error('加载失败: ' + res.message)
     }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('加载失败，请检查网络')
   } finally {
@@ -232,6 +266,26 @@ onMounted(() => {
   border-bottom: 1px solid var(--el-border-color-lighter);
   margin-bottom: 10px;
 }
+/* ✅ 新增：筛选区域容器 */
+.filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* 两个输入框之间的间距 */
+}
+
+/* ✅ 新增：下拉选项中的样式美化 */
+.tag-option-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
 
 .page-title {
   margin: 0;
@@ -242,20 +296,12 @@ onMounted(() => {
   align-items: center;
 }
 
-.search-box {
-  width: 300px;
+/* 稍微优化一下搜索框的聚焦效果 */
+.custom-search-input :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
 }
-
-.custom-search-input :deep(.el-input-group__append) {
-  /* ✅ 修改：背景色跟随主题 */
-  background-color: var(--el-fill-color-blank);
-  padding: 0 15px;
-  /* 确保边框颜色也适配 (可选) */
-  box-shadow: none;
-}
-.custom-search-input :deep(.el-input-group__append:hover) {
-  /* ✅ 修改：主色调 */
-  color: var(--el-color-primary);
+.custom-search-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
 }
 
 .problem-title-text {
@@ -274,6 +320,12 @@ onMounted(() => {
 .progress-wrapper {
   width: 80%;
   margin: 0 auto;
+}
+/* 调整进度条文字大小 */
+:deep(.el-progress__text) {
+  font-size: 12px !important;
+  color: var(--el-text-color-secondary);
+  min-width: 80px; /* 防止文字换行 */
 }
 
 .pagination-container {

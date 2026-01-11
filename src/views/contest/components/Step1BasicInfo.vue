@@ -31,26 +31,6 @@
 
     <el-row :gutter="24">
       <el-col :span="12">
-        <!-- <div
-          style="
-            background: #fdf6ec;
-            padding: 10px;
-            margin-bottom: 10px;
-            color: #e6a23c;
-            border: 1px dashed orange;
-          "
-        >
-          <p>🔍 调试信息:</p>
-          <p>
-            isUpdate (是否更新模式): <strong>{{ props.isUpdate }}</strong>
-          </p>
-          <p>
-            contestStatus (比赛状态): <strong>{{ props.contestStatus }}</strong>
-          </p>
-          <p>
-            计算结果 (是否禁用): <strong>{{ props.isUpdate && props.contestStatus !== 0 }}</strong>
-          </p>
-        </div> -->
         <el-form-item label="赛制模式" prop="type">
           <el-radio-group
             v-model="form.type"
@@ -67,23 +47,23 @@
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="权限设置" prop="visible">
-          <el-radio-group v-model="form.visible">
-            <el-radio :value="0">公开比赛</el-radio>
-            <el-radio :value="1">私有比赛 (需密码)</el-radio>
+        <el-form-item label="权限设置" prop="hasPwd">
+          <el-radio-group v-model="form.hasPwd" @change="handleAuthChange">
+            <el-radio :value="false">公开比赛</el-radio>
+            <el-radio :value="true">私有比赛 (需密码)</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-col>
     </el-row>
 
     <el-form-item
-      v-if="form.visible === 1"
+      v-if="form.hasPwd"
       label="访问密码"
-      prop="password"
+      prop="pwd"
       :rules="[{ required: true, message: '私有比赛必须设置密码', trigger: 'blur' }]"
     >
       <el-input
-        v-model="form.password"
+        v-model="form.pwd"
         type="password"
         show-password
         placeholder="请设置比赛访问密码"
@@ -113,17 +93,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { type ContestAddRequest } from '@/api/contest'
+import { type ContestAddAndUpdateRequest } from '@/api/contest'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { Lock, InfoFilled } from '@element-plus/icons-vue'
 
-// 接收父组件传入的状态
 const props = defineProps<{
   isUpdate?: boolean
-  contestStatus?: number // 0:未开始, 1:进行中, 2:已结束
+  contestStatus?: number
 }>()
 
-const form = defineModel<ContestAddRequest>('form', { required: true })
+const form = defineModel<ContestAddAndUpdateRequest>('form', { required: true })
 const emit = defineEmits(['next'])
 const formRef = ref<FormInstance>()
 
@@ -132,6 +111,14 @@ const rules = {
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
   type: [{ required: true, message: '请选择赛制', trigger: 'change' }],
+}
+
+// ✅ 修改点 2：处理权限切换逻辑
+const handleAuthChange = (val: boolean) => {
+  // 如果切回 false (公开)，清空密码
+  if (!val) {
+    form.value.pwd = ''
+  }
 }
 
 const handleNext = async () => {

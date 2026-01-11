@@ -11,7 +11,7 @@
             style="width: 240px"
           >
             <template #append>
-              <el-button :icon="Search" @click="loadData" />
+              <el-button :icon="Search" @click="handleSearch" />
             </template>
           </el-input>
         </el-form-item>
@@ -199,6 +199,7 @@ import duration from 'dayjs/plugin/duration'
 import checkAccess from '@/access/checkAccess'
 import { useUserStore } from '@/store/user'
 import ACCESS_ENUM from '@/access/accessEnum'
+import type { ContestQueryRequest } from '@/api/contest'
 
 dayjs.extend(duration)
 
@@ -216,10 +217,10 @@ const total = ref(0)
 const timer = ref<number | null>(null)
 const now = ref(dayjs())
 
-const searchParams = reactive({
+const searchParams = reactive<ContestQueryRequest>({
   current: 1,
   pageSize: 10,
-  keyword: '',
+  keyword: '', 
   status: undefined as number | undefined,
 })
 
@@ -338,6 +339,12 @@ const handleDelete = (row: ContestVO) => {
       ElMessage.error('删除失败: ' + r.message)
     }
   })
+}
+
+// handleSearch（用于点击搜索按钮或回车）
+const handleSearch = () => {
+  searchParams.current = 1 // 关键：搜索时重置为第一页
+  loadData()
 }
 </script>
 

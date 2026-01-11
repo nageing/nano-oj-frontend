@@ -158,13 +158,13 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { listProblemByPageUsingPost, type ProblemVO } from '@/api/problem'
-import { type ContestAddRequest } from '@/api/contest'
+import { type ContestAddAndUpdateRequest } from '@/api/contest'
 import { ElMessage } from 'element-plus'
 import { Search, Plus, Delete } from '@element-plus/icons-vue'
 import { TagVO } from '@/api/problem'
 
 // form 里面应该包含了 type (0=ACM, 1=IOI)
-const form = defineModel<ContestAddRequest>('form', { required: true })
+const form = defineModel<ContestAddAndUpdateRequest>('form', { required: true })
 const emit = defineEmits(['prev', 'next'])
 
 const dataList = ref<ProblemVO[]>([])
