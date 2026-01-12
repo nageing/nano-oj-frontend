@@ -3,8 +3,8 @@ import axios from 'axios'
 // 创建一个 Axios 实例
 const instance = axios.create({
   // 基础地址：你的后端地址
-  // 如果你的后端是 8080，请把 8888 改成 8080
-  baseURL: 'http://localhost:8888/api',
+  // 如果你的后端是 8080，请把 8081 改成 8080
+  baseURL: 'http://localhost:8081/api',
   timeout: 10000, // 请求超时时间 10秒
   withCredentials: true, // 允许跨域携带 Cookie (重要！否则后端拿不到 session)
 })

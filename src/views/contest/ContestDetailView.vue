@@ -335,6 +335,7 @@
 </template>
 
 <script setup lang="ts">
+  import { useUserStore } from '@/store/user'
 import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -361,6 +362,7 @@ dayjs.extend(duration)
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const contestId = route.params.id as string
 const loading = ref(true)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -457,6 +459,11 @@ const loadData = async () => {
 }
 
 const handleApplyBtn = () => {
+  if (!userStore.loginUser.id) {
+    ElMessage.warning('请先登录')
+    userStore.setLoginDialogVisible(true)
+    return
+  }
   if (contest.value.hasPwd) {
     applyPassword.value = ''
     pwdDialogVisible.value = true
