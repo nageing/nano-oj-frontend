@@ -33,7 +33,7 @@
             </div>
             <div class="limit-item">
               <el-icon><Cpu /></el-icon>
-              <span>{{ problem.judgeConfig?.memoryLimit ?? 1000 }}KB</span>
+              <span>{{ problem.judgeConfig?.memoryLimit ?? 256 }}MB</span>
             </div>
           </div>
         </div>
@@ -330,7 +330,7 @@ const copyText = async (text: string) => {
 
 /* 图片优化：居中、阴影、防过大 */
 .markdown-body-wrapper :deep(img) {
-  max-width: 100%;
+  max-width: 50%;
   border-radius: 8px;
   display: block;
   margin: 20px auto; /* 居中 */

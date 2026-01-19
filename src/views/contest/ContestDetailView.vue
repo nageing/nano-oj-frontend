@@ -743,7 +743,7 @@ const isOiRunning = computed(() => {
   align-items: center;
 }
 .acm-status {
-  width: 100%;
+  width: 150%;
   height: 46px;
   display: flex;
   flex-direction: column;
@@ -761,7 +761,7 @@ const isOiRunning = computed(() => {
 }
 .acm-status.ac .ac-time {
   font-weight: bold;
-  font-size: 13px;
+  font-size: 11px;
 }
 .acm-status.ac .wa-count {
   font-size: 11px;

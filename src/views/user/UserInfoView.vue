@@ -239,31 +239,49 @@ const onFileChange = (e: Event) => {
 // === 3. 确认裁剪并上传 ===
 const handleCropUpload = () => {
   uploadLoading.value = true
+
   cropperRef.value.getCropBlob(async (blob: Blob) => {
-    // 构造 FormData
+    // ... (构造 FormData 的代码保持不变) ...
     const formData = new FormData()
-    // 将 blob 转为 file 对象，文件名沿用
     const file = new File([blob], rawFileName.value, { type: blob.type })
     formData.append('file', file)
 
     try {
-      // 手动调用上传接口
+      // 1. 先上传文件拿到 URL
       const res = await request.post('/file/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const r = res as any // 简单断言
+      const r = res as any
+
       if (r.code === 0) {
-        form.userAvatar = r.data // 拿到 OSS 链接
-        ElMessage.success('头像上传成功，请点击保存')
-        cropperVisible.value = false
+        const newAvatarUrl = r.data // 拿到 OSS/本地文件地址
+
+        // ============================================
+        // ✨✨✨ 核心修改点：上传成功后，立即更新用户信息 ✨✨✨
+        // ============================================
+        const updateRes = await updateMyUserUsingPost({
+            userAvatar: newAvatarUrl
+            // 这里只传 userAvatar，后端更新时只会更新这个字段
+        })
+
+        if (updateRes.code === 0) {
+            form.userAvatar = newAvatarUrl // 更新当前页面显示
+            await userStore.getLoginUser() // 刷新全局状态（比如右上角的小头像）
+            ElMessage.success('头像更换成功')
+            cropperVisible.value = false   // 关闭弹窗
+        } else {
+            ElMessage.error('头像保存失败: ' + updateRes.message)
+        }
+        // ============================================
+
       } else {
-        ElMessage.error('上传失败: ' + r.message)
+        ElMessage.error('上传图片失败: ' + r.message)
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      ElMessage.error('上传网络错误')
+      ElMessage.error('网络错误')
     } finally {
       uploadLoading.value = false
     }

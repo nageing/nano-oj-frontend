@@ -51,7 +51,7 @@
       </el-col>
       <el-col :span="12">
         <el-form-item label="内存限制">
-          <el-input-number v-model="form.judgeConfig.memoryLimit" :min="0" placeholder="KB" /> KB
+          <el-input-number v-model="form.judgeConfig.memoryLimit" :min="0" placeholder="MB" /> MB
         </el-form-item>
       </el-col>
     </el-row>
@@ -112,7 +112,7 @@ const form = reactive({
   visible: 0, // 0 公开，1 私有
   judgeConfig: {
     timeLimit: 1000,
-    memoryLimit: 1000,
+    memoryLimit: 256,
     stackLimit: 1000,
   },
   judgeCase: [{ input: '', output: '' }],
@@ -163,12 +163,13 @@ const loadData = async () => {
     }
 
     if (data.judgeConfig) {
+      console.log(data.judgeConfig)
       if (typeof data.judgeConfig === 'string') {
         form.judgeConfig = JSON.parse(data.judgeConfig)
       } else {
         form.judgeConfig = {
           timeLimit: data.judgeConfig.timeLimit ?? 1000,
-          memoryLimit: data.judgeConfig.memoryLimit ?? 1000,
+          memoryLimit: data.judgeConfig.memoryLimit ?? 256,
           stackLimit: data.judgeConfig.stackLimit ?? 1000,
         }
       }
