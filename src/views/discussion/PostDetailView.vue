@@ -22,7 +22,7 @@
                   class="problem-tag"
                   @click.stop="toProblem(post.questionId)"
                 >
-                  关联题目 {{ post.questionId }}
+                  关联题目 {{ post.problemTitle || post.questionId }}
                 </el-tag>
                 <span class="meta-item text-gray">
                   发布于 {{ new Date(post.createTime).toLocaleString() }}
@@ -46,6 +46,7 @@
           <div class="post-body">
             <Viewer :value="post.content" :plugins="plugins" class="markdown-viewer" />
           </div>
+
         </el-card>
 
         <el-skeleton v-if="loading" :rows="10" animated />
@@ -127,7 +128,7 @@
                   </div>
 
                   <div class="sub-comment-list" v-if="comment._showSub">
-                    <div class="sub-comment-item" v-for="sub in comment.children" :key="sub.id">
+                    <div class="sub-comment-item" v-for="sub in getSubPage(comment)" :key="sub.id">
                       <div class="sub-avatar">
                         <el-avatar :size="24" :src="sub.user?.userAvatar" />
                       </div>
@@ -168,6 +169,17 @@
                           </el-popconfirm>
                         </div>
                       </div>
+                    </div>
+
+                    <div class="sub-pagination" v-if="comment.children.length > 10">
+                      <el-pagination
+                        small
+                        background
+                        layout="prev, pager, next"
+                        :total="comment.children.length"
+                        :page-size="10"
+                        v-model:current-page="comment._page"
+                      />
                     </div>
 
                     <div class="sub-comment-control">
@@ -259,7 +271,6 @@ import { View, Delete, ChatLineSquare, ArrowDown, ArrowUp } from '@element-plus/
 import { useUserStore } from '@/store/user'
 import 'bytemd/dist/index.css'
 
-// ---------------- 类型定义 ----------------
 interface PostCommentVO {
   id: number
   content: string
@@ -272,9 +283,10 @@ interface PostCommentVO {
   createTime: string
   children?: PostCommentVO[]
 
-  // ✨✨✨ 前端 UI 状态字段 (以_开头) ✨✨✨
-  _showSub?: boolean       // 是否展开子评论
-  _expandText?: boolean    // 是否展开长文本
+  // UI 状态
+  _showSub?: boolean
+  _expandText?: boolean
+  _page?: number // ✨ 新增：子评论当前页码
 }
 
 const props = defineProps<{ id: string }>()
@@ -285,11 +297,9 @@ const post = ref<PostVO>()
 const loading = ref(true)
 const plugins = [gfm(), highlight()]
 
-// 编辑
 const editDialogVisible = ref(false)
 const editForm = reactive({ title: '', content: '' })
 
-// 评论
 const commentList = ref<PostCommentVO[]>([])
 const commentTotal = ref(0)
 const commentLoading = ref(false)
@@ -298,7 +308,6 @@ const activeReplyId = ref<number | null>(null)
 const replyContent = ref('')
 const replyToUser = ref<UserVO | null>(null)
 
-// 权限
 const canEditPost = computed(() => {
   if (!post.value || !userStore.loginUser.id) return false
   return post.value.userId === userStore.loginUser.id || userStore.loginUser.userRole === 'admin'
@@ -327,21 +336,51 @@ const loadData = async () => {
   }
 }
 
-const loadComments = async () => {
+// ✨✨✨ 修改：loadComments 增加 targetRootId 参数，用于回复后定向跳转 ✨✨✨
+const loadComments = async (targetRootId?: number) => {
+  // 1. 记录刷新前的状态 (展开状态、页码)
+  const stateMap = new Map<number, { showSub: boolean, page: number }>()
+  commentList.value.forEach(c => {
+    stateMap.set(c.id, {
+      showSub: c._showSub || false,
+      page: c._page || 1
+    })
+  })
+
   commentLoading.value = true
   try {
     const res = await listCommentVoByPageUsingPost({
       postId: Number(props.id),
       current: 1,
-      pageSize: 100,
+      pageSize: 1000, // 既然前端分页，这里最好拉取足够多的数据，或者配合后端做真正的二级分页
       sortField: 'createTime',
-      sortOrder: 'ascend' // 根评论正序
+      sortOrder: 'ascend'
     })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = res as any
     if (r.code === 0) {
       const flatList = r.data.records as PostCommentVO[]
-      commentList.value = buildCommentTree(flatList)
+      const newTree = buildCommentTree(flatList)
+
+      // 2. 恢复状态 + 处理新回复跳转
+      newTree.forEach(c => {
+        // 如果是刚刚回复的那个根评论
+        if (targetRootId && c.id === targetRootId) {
+          c._showSub = true // 强制展开
+          // 计算最后一页：总数/10 向上取整
+          const totalSubs = c.children ? c.children.length : 0
+          c._page = totalSubs > 0 ? Math.ceil(totalSubs / 10) : 1
+        } else {
+          // 否则恢复之前的状态
+          const oldState = stateMap.get(c.id)
+          if (oldState) {
+            c._showSub = oldState.showSub
+            c._page = oldState.page
+          }
+        }
+      })
+
+      commentList.value = newTree
       commentTotal.value = r.data.total
     }
   } finally {
@@ -353,11 +392,10 @@ const buildCommentTree = (flatList: PostCommentVO[]) => {
   const rootMap = new Map<number, PostCommentVO>()
   const roots: PostCommentVO[] = []
 
-  // 1. 找根评论
   flatList.forEach(item => {
-    // 初始化 UI 状态
-    item._showSub = false     // 默认收起子评论
-    item._expandText = false  // 默认收起长文
+    item._showSub = false
+    item._expandText = false
+    item._page = 1 // 默认为第1页
 
     if (!item.rootId || item.rootId == 0) {
       item.children = []
@@ -366,7 +404,6 @@ const buildCommentTree = (flatList: PostCommentVO[]) => {
     }
   })
 
-  // 2. 找子评论
   flatList.forEach(item => {
     if (item.rootId && item.rootId != 0) {
       const parent = rootMap.get(item.rootId)
@@ -376,12 +413,22 @@ const buildCommentTree = (flatList: PostCommentVO[]) => {
     }
   })
 
-  // 3. 子评论排序：正序 (先来后到)
+  // 子评论时间正序 (a - b)
   roots.forEach(root => {
     root.children?.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime())
   })
 
   return roots
+}
+
+// ✨✨✨ 新增：前端分页辅助函数 ✨✨✨
+const getSubPage = (comment: PostCommentVO) => {
+  if (!comment.children) return []
+  const page = comment._page || 1
+  const pageSize = 10
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+  return comment.children.slice(start, end)
 }
 
 const doSubmitRootComment = async () => {
@@ -414,23 +461,19 @@ const doSubmitReply = async (rootId: number) => {
   const r = res as any
   if (r.code === 0) {
     ElMessage.success('回复成功')
-    // 提交成功后，自动展开那条评论的子评论区，方便用户看到自己的回复
-    const targetRoot = commentList.value.find(c => c.id === rootId)
-    if (targetRoot) {
-      targetRoot._showSub = true
-    }
-
     activeReplyId.value = null
     replyContent.value = ''
     replyToUser.value = null
-    loadComments()
+
+    // ✨✨✨ 核心：回复成功后，传入 rootId，让 loadComments 知道要特殊处理这个楼层 ✨✨✨
+    loadComments(rootId)
   } else {
     ElMessage.error('回复失败: ' + r.message)
   }
 }
 
 const doDeleteComment = async (commentId: number) => {
-  const res = await deleteCommentUsingPost({ id: commentId })
+  const res = await deleteCommentUsingPost(commentId)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const r = res as any
   if (r.code === 0) {
@@ -496,8 +539,6 @@ onMounted(() => { loadData() })
 .reply-btn:hover { color: var(--el-color-primary); }
 .delete-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--el-color-danger); opacity: 0.8; }
 .delete-btn:hover { opacity: 1; text-decoration: underline; }
-
-/* 子评论 */
 .sub-comment-list { background-color: var(--el-fill-color-lighter); border-radius: 4px; padding: 12px; margin-top: 8px; }
 .sub-comment-item { display: flex; gap: 10px; margin-bottom: 12px; }
 .sub-avatar { flex-shrink: 0; margin-top: 2px; }
@@ -510,32 +551,12 @@ onMounted(() => { loadData() })
 .sub-text { color: var(--el-text-color-primary); }
 .inline-reply-box { margin-top: 12px; padding: 12px; background: var(--el-fill-color-light); border-radius: 4px; }
 .reply-actions { margin-top: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 8px; }
+.expand-btn { color: var(--el-color-primary); cursor: pointer; font-size: 13px; margin-left: 6px; user-select: none; }
+.expand-btn:hover { text-decoration: underline; }
+.sub-comment-control { font-size: 13px; color: var(--el-text-color-secondary); margin-top: 8px; }
+.view-more-replies { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.view-more-replies:hover { color: var(--el-color-primary); }
 
-/* ✨✨✨ 新增样式：展开/收起 按钮 ✨✨✨ */
-.expand-btn {
-  color: var(--el-color-primary);
-  cursor: pointer;
-  font-size: 13px;
-  margin-left: 6px;
-  user-select: none;
-}
-.expand-btn:hover {
-  text-decoration: underline;
-}
-
-/* 子评论控制条（查看xx回复/收起回复） */
-.sub-comment-control {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin-top: 8px;
-}
-.view-more-replies {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.view-more-replies:hover {
-  color: var(--el-color-primary);
-}
+/* ✨✨✨ 新增：分页条样式 ✨✨✨ */
+.sub-pagination { display: flex; justify-content: center; margin: 10px 0; }
 </style>

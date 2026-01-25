@@ -60,6 +60,7 @@ export interface PostVO {
   user?: UserVO
   hasThumb: boolean
   hasFavour: boolean
+  problemTitle: string
 }
 
 /**

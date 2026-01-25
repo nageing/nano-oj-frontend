@@ -115,7 +115,7 @@
                 </div>
                 <div v-else-if="runLoading" class="empty-state">
                   <el-icon class="is-loading" size="30" color="#409eff"><Loading /></el-icon>
-                  <p>正在 Docker 容器中运行...</p>
+                  <p>正在运行...</p>
                 </div>
                 <pre v-else class="result-code">{{ testResult }}</pre>
               </div>

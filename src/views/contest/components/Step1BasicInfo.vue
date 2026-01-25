@@ -1,7 +1,7 @@
 <template>
   <el-form :model="form" ref="formRef" :rules="rules" label-position="top" size="large">
     <el-form-item label="比赛名称" prop="title">
-      <el-input v-model="form.title" placeholder="例如：2024年秋季算法大赛" />
+      <el-input v-model="form.title" placeholder="例如：选拔模拟赛" />
     </el-form-item>
 
     <el-row :gutter="24">

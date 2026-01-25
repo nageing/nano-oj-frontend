@@ -42,7 +42,7 @@
               </div>
             </div>
             <el-tag v-if="post.questionId" type="warning" size="small" effect="dark" round>
-              题目 {{ post.questionId }}
+              {{ post.problemTitle || ('题目 ' + post.questionId) }}
             </el-tag>
             <el-tag v-else type="success" size="small" effect="plain" round> 日常吐槽 </el-tag>
           </div>
@@ -59,12 +59,6 @@
           <div class="post-footer">
             <div class="action-item">
               <el-icon><View /></el-icon> <span>浏览</span>
-            </div>
-            <div class="action-item">
-              <el-icon><Pointer /></el-icon> <span>{{ post.thumbNum }}</span>
-            </div>
-            <div class="action-item">
-              <el-icon><Star /></el-icon> <span>{{ post.favourNum }}</span>
             </div>
             <div class="action-item">
               <el-icon><ChatLineSquare /></el-icon> <span>去评论</span>
@@ -116,7 +110,7 @@
 import { onMounted, ref, reactive } from 'vue'
 import { listPostVoByPageUsingPost, addPostUsingPost } from '@/api/post'
 import { ElMessage } from 'element-plus'
-import { Search, EditPen, View, ChatLineSquare, Pointer, Star } from '@element-plus/icons-vue'
+import { Search, EditPen, View, ChatLineSquare } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
 import type { PostVO, PostQueryRequest } from '@/api/post'

@@ -53,6 +53,14 @@ export interface UserUpdateMyRequest {
   userProfile?: string;
 }
 
+
+/**
+ * 签到状态 VO
+ */
+export interface UserCheckInVO {
+  isChecked: boolean;
+  continueDays: number;
+}
 // ==========================================
 // 2. API 请求方法
 // ==========================================
@@ -93,4 +101,18 @@ export const updateMyUserUsingPost = async (params: UserUpdateMyRequest) => {
  */
 export const userLogoutUsingPost = async () => {
   return await request.post('/user/logout') as unknown as Promise<BaseResponse<boolean>>;
+}
+
+/**
+ * 用户签到
+ */
+export const userCheckInUsingPost = async () => {
+  return await request.post('/user/checkin') as unknown as Promise<BaseResponse<boolean>>;
+}
+
+/**
+ * 获取签到状态
+ */
+export const getCheckInStatusUsingGet = async () => {
+  return await request.get('/user/get/checkin/status') as unknown as Promise<BaseResponse<UserCheckInVO>>;
 }
